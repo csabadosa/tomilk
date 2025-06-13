@@ -34,14 +34,19 @@ export default function Home() {
         </h1>
       </div>
 
-      <div className="h-screen w-full bg-orange-400 flex items-center justify-center px-10 text-center text-black font-bold text-2xl">
-        <span>
-          Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
-          Csíkszereda – Ajnád útvonalon, míg különjárataink rugalmas és megbízható megoldást
-          kínálnak ha máshová utazna. Ha teherszállításra van szüksége, abban is segítünk.
-          Autóbuszainkra számíthat legyen szó utazásról Hargita megyében, Romániában vagy akár
-          külföldön. Árajánlatért keressen bizalommal!
-        </span>
+      <div className="h-screen w-full bg-orange-400 flex items-center justify-between px-10 text-center text-black font-bold text-2xl">
+        <div className="w-1/2">
+          <span>
+            Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
+            Csíkszereda – Ajnád útvonalon, míg különjárataink rugalmas és megbízható megoldást
+            kínálnak ha máshová utazna. Ha teherszállításra van szüksége, abban is segítünk.
+            Autóbuszainkra számíthat legyen szó utazásról Hargita megyében, Romániában vagy akár
+            külföldön. Árajánlatért keressen bizalommal!
+          </span>
+        </div>
+        <div>
+          <Image src="/assets/bus1.jpg" alt="bus" width={512} height={1} />
+        </div>
       </div>
       <div
         className="fixed bottom-0 left-0 flex justify-center pl-2"

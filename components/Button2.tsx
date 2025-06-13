@@ -10,7 +10,7 @@ const Button2 = ({ children, route }: ButtonProps) => {
   return (
     <Link
       href={route}
-      className="bg-orange-400 text-black px-8 py-2 rounded-md font-semibold hover:bg-black hover:text-white transition-all duration-300 ease-in-out"
+      className="bg-orange-400 text-black px-8 py-2 rounded-md font-semibold hover:bg-black hover:text-white transition-all duration-100 ease-in-out"
     >
       {children}
     </Link>
