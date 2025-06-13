@@ -1,5 +1,7 @@
 'use client';
 
+import Button from '@/components/Button';
+import Button2 from '@/components/Button2';
 import NavBar from '@/components/NavBar';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
@@ -21,7 +23,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col overflow-x-hidden">
+    <div className="w-full flex flex-col">
       <div>
         <NavBar />
       </div>
@@ -34,18 +36,45 @@ export default function Home() {
         </h1>
       </div>
 
-      <div className="h-screen w-full bg-orange-400 flex items-center justify-between px-10 text-center text-black font-bold text-2xl">
-        <div className="w-1/2">
-          <span>
-            Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
-            Csíkszereda – Ajnád útvonalon, míg különjárataink rugalmas és megbízható megoldást
-            kínálnak ha máshová utazna. Ha teherszállításra van szüksége, abban is segítünk.
-            Autóbuszainkra számíthat legyen szó utazásról Hargita megyében, Romániában vagy akár
-            külföldön. Árajánlatért keressen bizalommal!
-          </span>
+      <div className="h-screen w-full bg-orange-400 items-center justify-between">
+        <div className="h-1/3 w-full flex items-center justify-between bg-orange-200 p-4 hover:bg-orange-300 transition-all duration-300 ease-in-out">
+          <div className="w-2/5 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src="/assets/bus1.jpg" alt="bus" width={170} height={1} />
+          </div>
+          <div className="flex flex-col items-center justify-center w-3/5 p-4 rounded-lg shadow-lg border-2 border-orange-200">
+            <span className="text-center text-black font-bold">
+              Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
+              Csíkszereda – Ajnád útvonalon, míg különjárataink rugalmas és megbízható megoldást
+              kínálnak ha máshová utazna.
+            </span>
+            <Button2 route="/">Hello There!</Button2>
+          </div>
         </div>
-        <div>
-          <Image src="/assets/bus1.jpg" alt="bus" width={512} height={1} />
+        <div className="h-1/3 w-full flex items-center justify-between bg-orange-200 p-4 hover:bg-orange-300 transition-all duration-300 ease-in-out">
+          <div className="h-full flex flex-col items-start w-3/5 px-4 py-2 rounded-lg shadow-lg border-2 border-orange-200 gap-2">
+            <h1 className="text-orange-900 text-xl font-extrabold border-b">Valami Cím</h1>
+            <span className="text-black font-bold">
+              Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
+              Csíkszereda – Ajnád útvonalon.
+            </span>
+            <Button route="/">Hello There!</Button>
+          </div>
+          <div className="w-2/5 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src="/assets/bus1.jpg" alt="bus" width={170} height={1} />
+          </div>
+        </div>
+        <div className="h-1/3 w-full flex items-center justify-between bg-orange-200 p-4 hover:bg-orange-300 transition-all duration-300 ease-in-out">
+          <div className="w-2/5 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src="/assets/bus1.jpg" alt="bus" width={170} height={1} />
+          </div>
+          <div className="flex flex-col items-center justify-center w-3/5 p-4 rounded-lg shadow-lg border-2 border-orange-200">
+            <span className="text-center text-black font-bold">
+              Helyi járatainkra nap mint nap számíthatnak a Csíkszereda – Balánbánya, valamint
+              Csíkszereda – Ajnád útvonalon, míg különjárataink rugalmas és megbízható megoldást
+              kínálnak ha máshová utazna.
+            </span>
+            <Button2 route="/">Hello There!</Button2>
+          </div>
         </div>
       </div>
       <div
