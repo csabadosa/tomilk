@@ -27,10 +27,10 @@ export default function Home() {
       </div>
       <div className="flex flex-col items-center justify-center h-screen overflow-hidden">
         <h1 style={textStyle} className="text-orange-400 font-extrabold">
-          "Utazás gondtalanul. <br />
+          &quot;Utazás gondtalanul. <br />
         </h1>
         <h1 style={textStyle} className="text-black font-extrabold">
-          Dőljön hátra, mi elvisszük."
+          Dőljön hátra, mi elvisszük.&quot;
         </h1>
       </div>
 
