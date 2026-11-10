@@ -12,16 +12,16 @@ export function Hero({ t }: { t: T }) {
   return (
     <section id="top" className="hero">
       <div className="wrap hero-inner">
-        <p className="hero-services">
-          <span>{t.hero.serviceA}</span>
-          <span>{t.hero.serviceB}</span>
-        </p>
         <h1 className="hero-title">
           <span>{t.hero.h1a}</span>
           <span className="hero-title-2">{t.hero.h1b}</span>
         </h1>
+        <p className="hero-services">
+          <span>{t.hero.serviceA}</span>
+          <span>{t.hero.serviceB}</span>
+        </p>
         <div className="hero-cta">
-          <a className="btn btn-primary" href="/rezervare">
+          <a className="btn btn-primary" href="/oferta">
             {t.hero.privateCta}
           </a>
           <a className="btn btn-ghost" href="#schedule">
@@ -56,11 +56,16 @@ export function Stats({ t }: { t: T }) {
             <span className="stat-l">{it.l}</span>
           </div>
         ))}
-        <div className="stat stat-fare">
-          <span className="stat-l">{t.stats.from}</span>
-          <span className="stat-n data">
-            5 <em>{t.stats.fromUnit}</em>
-          </span>
+        <div className="stat-fare">
+          <div className="ticket">
+            <div className="ticket-main">
+              <span className="ticket-brand data">TOMILK PROD</span>
+              <span className="ticket-from">{t.stats.from}</span>
+              <span className="ticket-price data">5<em>{t.stats.fromUnit}</em></span>
+              <span className="ticket-barcode" aria-hidden />
+            </div>
+            <div className="ticket-stub"><span className="data">016 · 075</span></div>
+          </div>
         </div>
       </div>
     </section>
@@ -72,11 +77,12 @@ export function Routes({ t, lang }: { t: T; lang: Lang }) {
   return (
     <section id="routes" className="block">
       <div className="wrap">
-        <SectionHead title={t.routes.title} lead={t.routes.lead} />
+        <SectionHead title={t.routes.title} lead={t.routes.lead} className="routes-head" />
         <div className="routes">
           {LINES.map((line) => {
             const perDay = line.dirs.reduce((s, d) => s + d.times.length, 0);
             const [a, b] = routeEnds(line.stops[0], line.stops[line.stops.length - 1]);
+            const routeStops = a === line.stops[0] ? line.stops : [...line.stops].reverse();
             return (
               <article className="route" key={line.code}>
                 <header className="route-head">
@@ -90,10 +96,10 @@ export function Routes({ t, lang }: { t: T; lang: Lang }) {
                   </span>
                 </header>
 
-                <div className="route-map" role="list" aria-label={`${line.stops.length} ${t.routes.stopsLabel}`}>
+                <div className="route-map" role="list" aria-label={`${routeStops.length} ${t.routes.stopsLabel}`}>
                   <span className="route-line" />
-                  {line.stops.map((s, i) => {
-                    const terminal = i === 0 || i === line.stops.length - 1;
+                  {routeStops.map((s, i) => {
+                    const terminal = i === 0 || i === routeStops.length - 1;
                     return (
                       <span className={`route-stop${terminal ? ' is-term' : ''}`} role="listitem" key={s}>
                         <i />
@@ -282,7 +288,7 @@ export function PrivatePromo({ t }: { t: T }) {
               ))}
             </ul>
             <div className="promo-cta">
-              <a className="btn btn-primary" href="/rezervare">
+              <a className="btn btn-primary" href="/oferta">
                 {t.privatePromo.cta} →
               </a>
               <span className="promo-note">{t.privatePromo.note}</span>
@@ -299,7 +305,6 @@ export function PrivatePromo({ t }: { t: T }) {
 
 /* ----------------------------- CONTACT ------------------------------ */
 export function Contact({ t }: { t: T }) {
-  const towns = t.contact.areaNote.split(' · ');
   return (
     <section id="contact" className="block block-contact">
       <div className="wrap">
@@ -315,22 +320,6 @@ export function Contact({ t }: { t: T }) {
           ))}
         </div>
 
-        <div className="contact-meta">
-          <div>
-            <span className="cm-label">{t.contact.area}</span>
-            <div className="town-chips">
-              {towns.map((town) => (
-                <span className="chip" key={town}>
-                  {town}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <span className="cm-label">{t.contact.hours}</span>
-            <span className="cm-val data">{t.contact.hoursNote}</span>
-          </div>
-        </div>
         <div className="contact-meta company-meta">
           <div>
             <span className="cm-label">{t.contact.company}</span>
@@ -342,7 +331,7 @@ export function Contact({ t }: { t: T }) {
           </div>
           <div>
             <span className="cm-label">{t.contact.cui}</span>
-            <span className="cm-val data">RO....</span>
+            <span className="cm-val data">RO10059056</span>
           </div>
           <div>
             <span className="cm-label">{t.contact.address}</span>
@@ -378,9 +367,9 @@ export function Footer({ t }: { t: T }) {
 }
 
 /* ----------------------------- shared ------------------------------- */
-function SectionHead({ title, lead }: { title: string; lead?: string }) {
+function SectionHead({ title, lead, className = '' }: { title: string; lead?: string; className?: string }) {
   return (
-    <header className="sec-head">
+    <header className={`sec-head ${className}`}>
       <h2>{title}</h2>
       {lead ? <p>{lead}</p> : null}
     </header>

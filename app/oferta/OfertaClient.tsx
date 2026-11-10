@@ -16,7 +16,7 @@ export default function OfertaClient({ initialLang }: { initialLang: Lang }) {
       <DrivingScene lang={lang} />
       <Nav t={t} lang={lang} onLang={setLang} />
       <main>
-        <KulonjaratKalkulator t={t} />
+        <KulonjaratKalkulator t={t} lang={lang} />
       </main>
       <Footer t={t} />
     </>

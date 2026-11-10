@@ -16,7 +16,7 @@ export default function TarifeClient({ initialLang }: { initialLang: Lang }) {
       <DrivingScene lang={lang} />
       <Nav t={t} lang={lang} onLang={setLang} />
       <main>
-        <JegyKalkulator t={t} />
+        <JegyKalkulator t={t} lang={lang} />
       </main>
       <Footer t={t} />
     </>

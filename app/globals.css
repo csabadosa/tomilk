@@ -432,7 +432,7 @@ main {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
-.nav-links { display: flex; gap: 1.6rem; }
+.nav-links { display: flex; align-items: center; gap: 1.6rem; }
 .nav-links a {
   font-size: 0.92rem;
   color: var(--slate);
@@ -467,6 +467,7 @@ main {
    HERO
    ============================================================ */
 .hero {
+  position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -474,21 +475,23 @@ main {
   padding-top: 66px;
   padding-bottom: 34vh;
 }
+.hero-inner { transform: translateY(clamp(1rem, 3vh, 2rem)); }
 .hero-services {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   margin-bottom: 1.5rem;
   max-width: 48ch;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   line-height: 1.45;
   color: var(--slate);
 }
 .hero-title {
-  font-size: clamp(2.8rem, 8.5vw, 6.4rem);
+  font-size: clamp(2.65rem, 7.8vw, 5.9rem);
   line-height: 0.96;
   letter-spacing: -0.035em;
   max-width: 14ch;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
 }
 .hero-title span { display: block; }
 .hero-title-2 { color: var(--signal); }
@@ -502,11 +505,12 @@ main {
 .hero-cta { margin-top: 2.2rem; display: flex; flex-wrap: wrap; gap: 0.9rem; }
 .scroll-hint {
   position: absolute;
-  bottom: calc(34vh + 1rem);
+  bottom: calc(var(--road-h) + 2rem - 5pt);
+  left: 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  color: var(--slate-dim);
+  color: var(--slate);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
 }
@@ -521,21 +525,34 @@ main {
 /* ============================================================
    STATS
    ============================================================ */
-.stats { padding: 2.5rem 0; border-block: 1px solid rgba(255,255,255,0.06); background: rgba(12,14,18,0.35); }
-.stats-inner { display: flex; flex-wrap: wrap; gap: 1.5rem 3rem; align-items: baseline; }
+.stats { padding: 2.5rem 0; border-block: 1px solid rgba(255,255,255,0.06); background: rgba(12,14,18,0.35); position: relative; z-index: 1; transform: translateY(-5rem); }
+.stats-inner { display: flex; flex-wrap: wrap; gap: 1.5rem 4.5rem; align-items: center; }
 .stat { display: flex; flex-direction: column; gap: 0.3rem; }
-.stat-n { font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 700; color: var(--snow); }
+.stat-n { font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 700; color: var(--signal); }
 .stat-n em { font-style: normal; font-size: 0.5em; color: var(--lane); }
-.stat-l { font-size: 0.85rem; color: var(--slate-dim); max-width: 16ch; }
-.stat-fare { margin-left: auto; text-align: right; }
-.stat-fare .stat-n { color: var(--lane); }
+.stat-l { font-size: 1rem; color: var(--slate-dim); max-width: 16ch; }
+.stat-fare { width: min(100%, 360px); margin-left: auto; }
+.stat-fare .ticket { width: 100%; }
+.stat-fare .ticket-main { padding: .9rem 1rem; gap: .2rem; }
+.stat-fare .ticket-brand { font-size: .82rem; }
+.stat-fare .ticket-from { margin-top: .2rem; font-size: .85rem; }
+.stat-fare .ticket-price { font-size: 2.8rem; }
+.stat-fare .ticket-barcode { margin-top: .4rem; height: 22px; }
+.stat-fare .ticket-stub { width: 30%; }
+.stat-fare .ticket::before { left: calc(70% - 11px); }
+.stat-fare .ticket::after { right: calc(30% - 11px); }
+.stat-fare .ticket-stub .data { font-size: .76rem; }
 
 /* ============================================================
    BLOCKS + section heads
    ============================================================ */
 .block { padding: clamp(4rem, 9vw, 7rem) 0; }
+#routes.block { padding-top: clamp(2rem, 4.5vw, 3.5rem); }
 .sec-head { margin-bottom: 2.6rem; max-width: 52ch; }
 .sec-head h2 { font-size: clamp(1.9rem, 4.5vw, 3rem); letter-spacing: -0.03em; }
+.kulonjarat-page .sec-head h2 { font-size: clamp(1.7rem, 4.2vw, 2.7rem); line-height: 1.08; }
+.routes-head { max-width: none; }
+.routes-head h2 { font-size: clamp(1.2rem, 4vw, 3rem); white-space: nowrap; }
 .sec-head p { margin-top: 0.9rem; color: var(--slate); font-size: 1.05rem; line-height: 1.5; }
 
 /* ============================================================
@@ -662,9 +679,10 @@ main {
 }
 .ticket::before, .ticket::after {
   content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%;
-  background: var(--asphalt); top: 50%;
+  background: var(--asphalt); top: 50%; transform: translateY(-50%);
 }
-.ticket::before { left: calc(66% - 11px); transform: translateY(-50%); box-shadow: 0 -40px 0 var(--asphalt), 0 40px 0 var(--asphalt); }
+.ticket::before { left: calc(66% - 11px); box-shadow: 0 -40px 0 var(--asphalt), 0 40px 0 var(--asphalt); }
+.ticket::after { right: calc(34% - 11px); }
 .ticket-main { flex: 1; padding: 1.5rem 1.4rem; display: flex; flex-direction: column; gap: 0.35rem; }
 .ticket-brand { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em; color: var(--signal); }
 .ticket-from { font-size: 0.82rem; color: #5a6472; margin-top: 0.4rem; }
@@ -706,7 +724,7 @@ main {
    ============================================================ */
 .block-contact { padding-bottom: clamp(3rem, 6vw, 5rem); }
 .contact-title { font-size: clamp(2.4rem, 7vw, 4.5rem); letter-spacing: -0.035em; }
-.contact-lead { margin-top: 1rem; color: var(--slate); font-size: 1.15rem; max-width: 44ch; }
+.contact-lead { margin-top: 1rem; color: var(--slate); font-size: clamp(0.7rem, 3.2vw, 1.15rem); max-width: none; white-space: nowrap; }
 .phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 2.4rem 0; }
 .phone {
   display: flex; flex-direction: column; gap: 0.3rem;
@@ -741,14 +759,15 @@ main {
    NAV — private-rides accent link
    ============================================================ */
 .nav-links a.nav-np {
-  color: var(--signal-bright);
-  font-weight: 600;
+  color: #fff;
+  background: var(--signal);
+  font-weight: 700;
   padding: 0.35rem 0.85rem;
-  border: 1px solid var(--asphalt-3);
+  border: 1px solid var(--signal);
   border-radius: 999px;
   transition: color 0.18s, background 0.18s, border-color 0.18s;
 }
-.nav-links a.nav-np:hover { color: #fff; background: var(--signal); border-color: var(--signal); }
+.nav-links a.nav-np:hover { color: #fff; background: var(--signal-bright); border-color: var(--signal-bright); }
 
 /* ============================================================
    PRIVATE PROMO
@@ -780,7 +799,7 @@ main {
    ============================================================ */
 .booking-sec { padding-top: calc(66px + clamp(2.5rem, 6vw, 4.5rem)); }
 .booking-wrap { max-width: 760px; }
-.booking-back { display: inline-block; margin-bottom: 1.6rem; color: var(--slate); font-size: 0.9rem; transition: color 0.18s; }
+.booking-back { display: inline-block; margin-bottom: 1.6rem; padding: .55rem .9rem; border: 1px solid var(--snow); border-radius: 999px; color: var(--slate); font-size: 0.9rem; transition: color 0.18s, background .18s; }
 .booking-back:hover { color: var(--snow); }
 .bk-form {
   background: rgba(20, 23, 30, 0.62);
@@ -826,13 +845,52 @@ main {
   .fares, .why { grid-template-columns: 1fr; }
   .contact-meta { grid-template-columns: 1fr; }
   .nav-links { display: none; }
-  .stat-fare { margin-left: 0; text-align: left; }
+  .stat-fare { margin-left: 0; }
   .promo { grid-template-columns: 1fr; gap: 1.6rem; }
   .promo-aside { display: none; }
 }
 @media (max-width: 560px) {
   .bk-grid { grid-template-columns: 1fr; }
 }
+
+/* Fleet page */
+.fleet-page { min-height: 70vh; padding: clamp(3rem, 7vw, 6.5rem) 0 5rem; color: var(--snow); }
+.fleet-hero { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
+.fleet-eyebrow { margin: 0 0 1rem; color: var(--lane); font-size: .75rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.fleet-hero h1 { max-width: 11ch; margin: 0; font-size: clamp(2.8rem, 6vw, 5.8rem); line-height: .98; letter-spacing: -.055em; }
+.fleet-lead { max-width: 38rem; margin: 1.5rem 0 2rem; color: var(--slate); font-size: 1.05rem; line-height: 1.7; }
+.fleet-count { display: flex; align-items: center; gap: 1rem; }
+.fleet-count strong { color: var(--lane); font-size: 3.5rem; line-height: 1; }
+.fleet-count span { max-width: 8rem; color: var(--slate); font-size: .9rem; line-height: 1.4; }
+.fleet-hero-image { margin: 0; padding: 1rem; border: 1px solid var(--asphalt-3); border-radius: 1.5rem; background: rgba(255,255,255,.035); }
+.fleet-hero-image img { display: block; width: 100%; height: auto; max-height: 25rem; object-fit: contain; }
+.fleet-hero-image figcaption { padding: .75rem .35rem 0; color: var(--slate-dim); font-size: .75rem; }
+.fleet-section { margin-top: clamp(4rem, 8vw, 7rem); }
+.fleet-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.fleet-card { padding: clamp(1.4rem, 3vw, 2.2rem); border: 1px solid var(--asphalt-3); border-radius: 1.25rem; background: rgba(255,255,255,.035); }
+.fleet-card-top { display: flex; justify-content: space-between; color: var(--lane); font-size: .7rem; font-weight: 800; letter-spacing: .14em; }
+.fleet-card h2 { margin: 2rem 0 .75rem; font-size: clamp(1.55rem, 3vw, 2.25rem); letter-spacing: -.03em; }
+.fleet-card p { min-height: 5rem; margin: 0; color: var(--slate); line-height: 1.65; }
+.fleet-card dl { margin: 1.75rem 0 0; border-top: 1px solid var(--asphalt-3); }
+.fleet-card dl div { display: flex; justify-content: space-between; gap: .8rem; padding: .8rem 0; border-bottom: 1px solid var(--asphalt-3); font-size: .85rem; }
+.fleet-card dt { color: var(--slate-dim); }
+.fleet-card dd { margin: 0; text-align: right; }
+.fleet-note { max-width: 58rem; margin: 1.5rem 0 0; padding: 1rem 1.2rem; border-left: 3px solid var(--lane); color: var(--slate); font-size: .9rem; line-height: 1.6; }
+@media (max-width: 760px) { .fleet-hero { grid-template-columns: 1fr; } .fleet-hero-image { order: -1; } }
+@media (max-width: 560px) { .fleet-grid { grid-template-columns: 1fr; } .fleet-card p { min-height: 0; } }
+.fleet-book-cta { margin-top: 1.25rem; }
+.fleet-booking-form { margin-top: 1.5rem; padding: clamp(1.25rem, 3vw, 2rem); border: 1px solid var(--asphalt-3); border-radius: 1.1rem; background: rgba(255,255,255,.035); }
+.fleet-booking-form h3 { margin: 0 0 .5rem; color: var(--snow); font-size: 1.4rem; }
+.fleet-booking-form > p { margin: 0 0 1.2rem; color: var(--slate); line-height: 1.6; }
+.fleet-book-success { margin-top: 1.5rem; padding: 1rem 1.2rem; border: 1px solid rgba(90, 190, 130, .45); border-radius: .8rem; background: rgba(40, 120, 80, .16); color: var(--snow); line-height: 1.6; }
+.fleet-book-success .btn { margin-top: 1rem; }
+.booking-success-page { min-height: 62vh; display: grid; align-items: center; padding: 7rem 0 5rem; }
+.booking-success { text-align: center; }
+.booking-success-mark { display: inline-grid; width: 4rem; height: 4rem; place-items: center; border: 2px solid var(--signal); border-radius: 50%; color: var(--signal); font-size: 2.3rem; font-weight: 800; }
+.booking-success h1 { margin: 1.5rem auto 0; max-width: 22ch; font-size: clamp(2rem, 5vw, 3.5rem); }
+.booking-success p { margin-top: 1rem; color: var(--slate); font-size: 1.15rem; }
+.kulon-or { margin: 1rem 0; color: var(--slate-dim); font-size: .75rem; font-weight: 800; letter-spacing: .18em; text-align: center; }
+.kulon-distance { max-width: 420px; }
 
 /* ============================================================
    KALKULÁTOROK — jegy/bérlet + különjárat árajánlat
@@ -957,6 +1015,10 @@ main {
   align-items: center;
   border-left: 2px dashed rgba(43, 32, 5, 0.45);
 }
+.jk-layout { display: block; }
+.calc-info { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; padding: 1rem 1.2rem; border: 1px solid var(--signal); border-radius: 12px; color: var(--snow); font-size: .9rem; line-height: 1.6; }
+.calc-info-icon { flex: 0 0 auto; color: var(--signal); font-size: 4rem; font-weight: 800; line-height: 1; }
+.calc-info p + p { margin-top: .35rem; }
 .calc-ticket-price {
   font-size: 2.1rem;
   font-weight: 800;

@@ -4,7 +4,7 @@ import { COPY, type Lang } from './content';
 import { useLang } from './useLang';
 import DrivingScene from '@/components/DrivingScene';
 import Nav from '@/components/Nav';
-import { Hero, Stats, Routes, Timetable, Fares, Why, PrivatePromo, Contact, Footer } from '@/components/Sections';
+import { Hero, Stats, Routes, Timetable, Why, PrivatePromo, Contact, Footer } from '@/components/Sections';
 
 export default function HomeClient({ initialLang }: { initialLang: Lang }) {
   const [lang, setLang] = useLang(initialLang);
@@ -19,7 +19,6 @@ export default function HomeClient({ initialLang }: { initialLang: Lang }) {
         <Stats t={t} />
         <Routes t={t} lang={lang} />
         <Timetable t={t} lang={lang} />
-        <Fares t={t} />
         <Why t={t} />
         <PrivatePromo t={t} />
         <Contact t={t} />

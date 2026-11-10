@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import type { COPY } from '@/app/content';
+import { COPY, WHATSAPP, type Lang } from '@/app/content';
 import { KULONJARAT_CONFIG } from '@/data/tarifak';
 import {
   inputFromRoute,
@@ -23,14 +22,25 @@ type Out = {
 
 const MS_PER_DAY = 86_400_000;
 
-export default function KulonjaratKalkulator({ t }: { t: T }) {
+export default function KulonjaratKalkulator({ t, lang }: { t: T; lang: Lang }) {
   const c = t.kulonCalc;
+  const dateParts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Bucharest', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date());
+  const year = Number(dateParts.find(p => p.type === 'year')?.value);
+  const month = Number(dateParts.find(p => p.type === 'month')?.value);
+  const day = Number(dateParts.find(p => p.type === 'day')?.value);
+  const earliestDepart = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [depart, setDepart] = useState('');
   const [ret, setRet] = useState('');
   const [pax, setPax] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [time, setTime] = useState('');
+  const [notes, setNotes] = useState('');
   const [round, setRound] = useState(true);
   // „Ha ismeri a pontos távolságot” mezők:
   const [mkm, setMkm] = useState('');
@@ -41,6 +51,13 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [out, setOut] = useState<Out | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingSent, setBookingSent] = useState(false);
+  const [bookingChannel, setBookingChannel] = useState<'whatsapp' | 'email'>('whatsapp');
+  const [bookingSending, setBookingSending] = useState(false);
+  const [bookingError, setBookingError] = useState('');
+  const [whatsappAwaitingConfirmation, setWhatsappAwaitingConfirmation] = useState(false);
+  const [whatsappUrl, setWhatsappUrl] = useState('');
 
   // Ezres csoportositas normal szokozzel (a hu-HU nem toro szokozeit csereljuk).
   const fmt = (n: number) =>
@@ -97,8 +114,11 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
     const hasManual = (parseFloat(mkm) || 0) > 0;
 
     if (!hasManual && (!from.trim() || !to.trim())) return setErr(c.err.route);
-    if (!depart) return setErr(c.err.date);
+    if (!depart || depart < earliestDepart) {
+      return setErr(lang === 'hu' ? 'Válasszon holnapi vagy későbbi indulási dátumot.' : 'Alegeți o dată de plecare de mâine sau ulterioară.');
+    }
     if (!(paxNum >= 1)) return setErr(c.err.pax);
+    if (!name.trim() || !phone.trim()) return setErr(lang === 'hu' ? 'Adja meg a nevét és telefonszámát.' : 'Introdu numele și numărul de telefon.');
     if (round && !ret) return setErr(c.err.ret);
     if (round && ret < depart) return setErr(c.err.retBefore);
 
@@ -112,6 +132,8 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
         KULONJARAT_CONFIG
       );
       setOut({ res, route, pax: paxNum, round, days });
+      setBookingOpen(false);
+      setBookingSent(false);
     } catch (e2) {
       setOut(null);
       setErr(e2 instanceof Error ? e2.message : c.err.generic);
@@ -120,15 +142,58 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
     }
   };
 
+  const submitBooking = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setBookingError('');
+    setBookingSending(true);
+    const when = [depart, time].filter(Boolean).join(' ');
+    const message = [
+      lang === 'hu' ? 'Foglalási kérelem — elfogadott előzetes ajánlat' : 'Cerere de rezervare — estimare acceptată', '',
+      `${c.from}: ${from}`, `${c.to}: ${to}`, `${c.pax}: ${pax}`,
+      `${lang === 'hu' ? 'Az út hossza' : 'Lungimea traseului'}: ${fmt(out!.route.main.km)} km`,
+      `${c.tripType}: ${round ? c.round : c.oneWay}`, `${c.departDate}: ${when}`,
+      round && ret ? `${c.returnDate}: ${ret}` : '',
+      `${lang === 'hu' ? 'Név' : 'Nume'}: ${name}`, `${lang === 'hu' ? 'Telefon' : 'Telefon'}: ${phone}`,
+      `${lang === 'hu' ? 'Becsült ár' : 'Estimare'}: ${fmt(out!.res.low)}–${fmt(out!.res.high)} ${c.currency}`,
+      notes.trim() ? `${lang === 'hu' ? 'Megjegyzés' : 'Observații'}: ${notes}` : '',
+    ].filter(Boolean).join('\n');
+
+    try {
+      if (bookingChannel === 'email') {
+        const response = await fetch('/api/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, language: lang }),
+        });
+        if (!response.ok) {
+          throw new Error(response.status === 503 ? 'email_not_configured' : 'email_delivery_failed');
+        }
+      } else {
+        const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
+        const win = window.open(url, '_blank');
+        if (win) win.opener = null;
+        setWhatsappUrl(url);
+        setWhatsappAwaitingConfirmation(true);
+        setBookingOpen(false);
+        return;
+      }
+      setBookingSent(true);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'email_delivery_failed';
+      setBookingError(lang === 'hu'
+        ? code === 'email_not_configured' ? 'Az e-mailes küldés még nincs beállítva. Kérjük, válassza a WhatsAppot.' : 'Az e-mail küldése nem sikerült. Próbálja újra, vagy válassza a WhatsAppot.'
+        : code === 'email_not_configured' ? 'Trimiterea e-mailului nu este configurată. Selectați WhatsApp.' : 'E-mailul nu a putut fi trimis. Încercați din nou sau selectați WhatsApp.');
+    } finally {
+      setBookingSending(false);
+    }
+  };
+
   return (
-    <section className="block booking-sec">
+    <section className="block booking-sec kulonjarat-page">
       <div className="wrap booking-wrap">
-        <Link className="booking-back" href="/#top">
-          {t.calcBack}
-        </Link>
         <header className="sec-head">
-          <h2>{c.title}</h2>
-          <p>{c.lead}</p>
+          <h2>{lang === 'hu' ? 'Különjárat — ajánlatkérés és foglalás' : 'Transport privat — ofertă și rezervare'}</h2>
+          <p>{lang === 'hu' ? 'Kérjen ajánlatot és foglaljon egyszerűen, néhány kattintással.' : 'Solicitați o ofertă și rezervați simplu, în doar câteva clicuri.'}</p>
         </header>
 
         <form className="bk-form" onSubmit={submit} noValidate>
@@ -153,9 +218,24 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
                 autoComplete="off"
               />
             </label>
+          </div>
+
+          <div className="kulon-or" aria-hidden="true">{lang === 'hu' ? 'VAGY' : 'SAU'}</div>
+          <label className="field kulon-distance">
+            <span>{lang === 'hu' ? 'Az utazás hossza kilométerben' : 'Lungimea călătoriei în kilometri'}</span>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              value={mkm}
+              onChange={e => setMkm(e.target.value)}
+            />
+          </label>
+
+          <div className="bk-grid" style={{ marginTop: '1.1rem' }}>
             <label className="field">
               <span>{c.departDate}</span>
-              <input type="date" value={depart} onChange={e => onDepart(e.target.value)} />
+              <input type="date" min={earliestDepart} value={depart} onChange={e => onDepart(e.target.value)} />
             </label>
             <label className="field">
               <span>{c.pax}</span>
@@ -168,6 +248,14 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
                 value={pax}
                 onChange={e => setPax(e.target.value)}
               />
+            </label>
+            <label className="field">
+              <span>{lang === 'hu' ? 'Név *' : 'Nume *'}</span>
+              <input type="text" autoComplete="name" value={name} onChange={e => setName(e.target.value)} required />
+            </label>
+            <label className="field">
+              <span>{lang === 'hu' ? 'Telefonszám *' : 'Număr de telefon *'}</span>
+              <input type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} required />
             </label>
           </div>
 
@@ -207,53 +295,6 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
             </label>
           )}
 
-          <details className="calc-advanced">
-            <summary>{c.advanced}</summary>
-            <div className="bk-grid" style={{ marginTop: '0.9rem' }}>
-              <label className="field">
-                <span>{c.mkm}</span>
-                <input
-                  type="number"
-                  min={1}
-                  inputMode="numeric"
-                  value={mkm}
-                  onChange={e => setMkm(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>{c.mfk}</span>
-                <input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  value={mfk}
-                  onChange={e => setMfk(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>{c.mka}</span>
-                <input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  value={mka}
-                  onChange={e => setMka(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>{c.mkb}</span>
-                <input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  placeholder={c.mkbPh}
-                  value={mkb}
-                  onChange={e => setMkb(e.target.value)}
-                />
-              </label>
-            </div>
-          </details>
-
           <div className="bk-submit">
             <button type="submit" className="btn btn-primary" disabled={busy}>
               {busy ? c.submitBusy : c.submit}
@@ -268,7 +309,41 @@ export default function KulonjaratKalkulator({ t }: { t: T }) {
         </form>
 
         <div aria-live="polite">
-          {out && <QuoteResult c={c} out={out} fmt={fmt} />}
+          {out && <>
+            <QuoteResult c={c} out={out} fmt={fmt} />
+            {!bookingOpen && !bookingSent && !whatsappAwaitingConfirmation && <div className="bk-submit fleet-book-cta">
+              <button type="button" className="btn btn-primary" onClick={() => setBookingOpen(true)}>
+                {lang === 'hu' ? 'Tovább a foglalásra' : 'Continuați la rezervare'}
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>}
+            {bookingOpen && <form className="bk-form fleet-booking-form" onSubmit={submitBooking}>
+              <h3>{lang === 'hu' ? 'További információk' : 'Informații suplimentare'}</h3>
+              <div className="bk-trip booking-channel">
+                <span className="field-legend">{lang === 'hu' ? 'Küldés módja' : 'Metoda de trimitere'}</span>
+                <div className="seg" role="group" aria-label={lang === 'hu' ? 'Küldés módja' : 'Metoda de trimitere'}>
+                  <button type="button" className={`seg-btn${bookingChannel === 'whatsapp' ? ' is-on' : ''}`} aria-pressed={bookingChannel === 'whatsapp'} onClick={() => setBookingChannel('whatsapp')}>WhatsApp</button>
+                  <button type="button" className={`seg-btn${bookingChannel === 'email' ? ' is-on' : ''}`} aria-pressed={bookingChannel === 'email'} onClick={() => setBookingChannel('email')}>E-mail</button>
+                </div>
+              </div>
+              <div className="bk-grid">
+                <label className="field"><span>{lang === 'hu' ? 'Indulás pontos órája *' : 'Ora exactă de plecare *'}</span><input type="time" value={time} onChange={e => setTime(e.target.value)} required /></label>
+                <label className="field field-full"><span>{lang === 'hu' ? 'Megjegyzés' : 'Observații'}</span><textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} /></label>
+              </div>
+              {bookingError && <p className="bk-err" role="alert">{bookingError}</p>}
+              <div className="bk-submit"><button type="submit" className="btn btn-primary" disabled={bookingSending}>{bookingSending ? (lang === 'hu' ? 'Küldés…' : 'Se trimite…') : (lang === 'hu' ? 'Foglalási kérelem elküldése' : 'Trimite cererea de rezervare')}</button></div>
+            </form>}
+            {whatsappAwaitingConfirmation && !bookingSent && <div className="fleet-book-success" role="status">
+              <p>{lang === 'hu' ? 'Miután elküldte a foglalási kérelmet WhatsAppon, térjen vissza ide, és erősítse meg az elküldést.' : 'După ce trimiteți cererea pe WhatsApp, reveniți aici și confirmați trimiterea.'}</p>
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">
+                {lang === 'hu' ? 'WhatsApp megnyitása' : 'Deschide WhatsApp'}
+              </a>
+              <button type="button" className="btn btn-primary" onClick={() => { window.location.href = '/rezervare?sent=1'; }}>
+                {lang === 'hu' ? 'Elküldtem a WhatsApp-kérelmet' : 'Am trimis cererea pe WhatsApp'}
+              </button>
+            </div>}
+            {bookingSent && <p className="fleet-book-success" role="status">{lang === 'hu' ? 'Foglalási kérelmét elküldtük. Munkatársunk hamarosan visszajelez a megadott telefonszámon.' : 'Cererea de rezervare a fost trimisă. Vă vom contacta în cel mai scurt timp la numărul de telefon indicat.'}</p>}
+          </>}
         </div>
 
         <p className="calc-note">{c.note}</p>

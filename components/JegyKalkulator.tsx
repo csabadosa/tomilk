@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import type { COPY } from '@/app/content';
+import type { COPY, Lang } from '@/app/content';
 import { ROUTES, TICKET_TYPES, type RouteId, type TicketTypeId } from '@/data/tarifak';
 import { szamitJegyar, type JegyarResult } from '@/lib/jegyar';
 
@@ -10,7 +10,15 @@ type T = (typeof COPY)['hu'];
 
 /** Jegy- és bérletár-kalkulátor. A számítás a tiszta lib-ben történik;
     itt csak a kiválasztás állapota és a megjelenítés van. */
-export default function JegyKalkulator({ t }: { t: T }) {
+const STOP_RO: Record<string, string> = {
+  'Csíkszereda': 'Miercurea Ciuc', 'Csíkcsicsó': 'Ciceu', 'Madéfalva': 'Siculeni',
+  'Csíkrákos': 'Racu', 'Csíkmadaras': 'Mădăraș', 'Csíkdánfalva': 'Dănești',
+  'Csíkkarcfalva': 'Cârța', 'Csíkjenőfalva': 'Ineu', 'Csíkszenttamás': 'Tomești',
+  'Csíkszentdomokos': 'Sândominic', 'Balánbánya': 'Bălan', 'Göröcsfalva': 'Grădiștea',
+  'Vacsárcsi': 'Văcărești', 'Csíkszentmihály': 'Mihăileni', 'Ajnád': 'Nădejdea', 'Lóvész': 'Livezi',
+};
+
+export default function JegyKalkulator({ t, lang }: { t: T; lang: Lang }) {
   const c = t.jegyCalc;
   const [route, setRoute] = useState<RouteId>('balan');
   const [from, setFrom] = useState('');
@@ -38,7 +46,12 @@ export default function JegyKalkulator({ t }: { t: T }) {
   );
 
   const typeLabel = c.types[type];
-  const routeLabel = from && to ? `${from} → ${to}` : '';
+  const displayStop = (stop: string) => lang === 'ro' ? STOP_RO[stop] ?? stop : stop;
+  const displayRoute = (id: RouteId) => {
+    const routeStops = ROUTES[id].stops;
+    return `${displayStop(routeStops[0])} – ${displayStop(routeStops[routeStops.length - 1])}`;
+  };
+  const routeLabel = from && to ? `${displayStop(from)} → ${displayStop(to)}` : '';
   const isNeutral = result.kind === 'error' && result.reason === 'missingStops';
 
   return (
@@ -52,7 +65,8 @@ export default function JegyKalkulator({ t }: { t: T }) {
           <p>{c.lead}</p>
         </header>
 
-        <div className="bk-form">
+        <div className="jk-layout">
+          <div className="bk-form">
           <label className="field field-full">
             <span>{c.route}</span>
             <select
@@ -62,7 +76,7 @@ export default function JegyKalkulator({ t }: { t: T }) {
             >
               {(Object.keys(ROUTES) as RouteId[]).map(id => (
                 <option key={id} value={id}>
-                  {ROUTES[id].name}
+                  {lang === 'ro' ? displayRoute(id) : ROUTES[id].name}
                 </option>
               ))}
             </select>
@@ -79,7 +93,7 @@ export default function JegyKalkulator({ t }: { t: T }) {
                 <option value="">{c.selectStop}</option>
                 {stops.map(s => (
                   <option key={s} value={s}>
-                    {s}
+                    {displayStop(s)}
                   </option>
                 ))}
               </select>
@@ -95,7 +109,7 @@ export default function JegyKalkulator({ t }: { t: T }) {
                 <option value="">{c.selectStop}</option>
                 {stops.map(s => (
                   <option key={s} value={s}>
-                    {s}
+                    {displayStop(s)}
                   </option>
                 ))}
               </select>
@@ -140,7 +154,16 @@ export default function JegyKalkulator({ t }: { t: T }) {
             )}
           </div>
 
-          <p className="calc-note">{c.note}</p>
+          </div>
+          <aside className="calc-info">
+            <span className="calc-info-icon" aria-hidden="true">!</span>
+            <div>
+              <p>{lang === 'hu' ? 'A jegyek a buszon válthatók ki készpénzes fizetés ellenében.' : 'Biletele se pot cumpăra în autobuz, cu plata în numerar.'}</p>
+              <p>{lang === 'hu' ? 'A bérletek a cég székhelyén vásárolhatók meg.' : 'Abonamentele se pot cumpăra de la sediul firmei.'}</p>
+              <p>{lang === 'hu' ? 'Az árak tartalmazzák az ÁFÁ-t.' : 'Prețurile includ TVA.'}</p>
+              <p>{lang === 'hu' ? 'Az itt feltüntetett árak kizárólag tájékoztató jellegűek.' : 'Prețurile afișate aici au doar caracter informativ.'}</p>
+            </div>
+          </aside>
         </div>
       </div>
     </section>

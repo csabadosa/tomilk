@@ -33,13 +33,10 @@ export default function Nav({
         <nav className="nav-links" aria-label="Secțiuni">
           <Link href="/#routes">{t.nav.routes}</Link>
           <Link href="/#schedule">{t.nav.schedule}</Link>
-          <Link href="/#fares">{t.nav.fares}</Link>
-          <Link href="/tarife">{t.nav.fareCalc}</Link>
+          <Link href="/tarife">{lang === 'hu' ? 'Áraink' : 'Prețuri'}</Link>
+          <Link href="/flotta">{lang === 'hu' ? 'Flotta' : 'Flotă'}</Link>
           <Link href="/#contact">{t.nav.contact}</Link>
-          <Link href="/oferta">{t.nav.quote}</Link>
-          <Link href="/rezervare" className="nav-np">
-            {t.nav.private}
-          </Link>
+          <Link href="/oferta" className="nav-np">{lang === 'hu' ? 'Különjárat / ajánlatkérés' : 'Transport privat / ofertă'}</Link>
         </nav>
 
         <div className="nav-actions">
