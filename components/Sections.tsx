@@ -331,6 +331,24 @@ export function Contact({ t }: { t: T }) {
             <span className="cm-val data">{t.contact.hoursNote}</span>
           </div>
         </div>
+        <div className="contact-meta company-meta">
+          <div>
+            <span className="cm-label">{t.contact.company}</span>
+            <span className="cm-val">S.C. Tomilk-Prod S.R.L.</span>
+          </div>
+          <div>
+            <span className="cm-label">{t.contact.email}</span>
+            <a className="cm-val" href="mailto:tomilkprod@gmail.com">tomilkprod@gmail.com</a>
+          </div>
+          <div>
+            <span className="cm-label">{t.contact.cui}</span>
+            <span className="cm-val data">RO....</span>
+          </div>
+          <div>
+            <span className="cm-label">{t.contact.address}</span>
+            <span className="cm-val">Csíkszereda, Temesvári sugárút 26/21, Hargita megye, Románia</span>
+          </div>
+        </div>
       </div>
     </section>
   );

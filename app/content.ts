@@ -186,7 +186,7 @@ type Copy = {
     yes: string;
     no: string;
   };
-  contact: { title: string; lead: string; callLabel: string; area: string; areaNote: string; hours: string; hoursNote: string };
+  contact: { title: string; lead: string; callLabel: string; area: string; areaNote: string; hours: string; hoursNote: string; company: string; email: string; cui: string; address: string };
   footer: { company: string; built: string; source: string };
   railLabel: string;
   /* Jegy- és bérletár-kalkulátor. */
@@ -357,6 +357,10 @@ export const COPY: Record<Lang, Copy> = {
       areaNote: 'Bălan · Sândominic · Dănești · Racu · Nădejdea · Miercurea Ciuc',
       hours: 'Program curse',
       hoursNote: 'Luni–Duminică, prima plecare 05:00',
+      company: 'Denumirea companiei',
+      email: 'Email',
+      cui: 'CUI',
+      address: 'Adres\u0103',
     },
     footer: {
       company: 'Tomilk Prod S.R.L., transport regulat de persoane în Harghita',
@@ -545,6 +549,10 @@ export const COPY: Record<Lang, Copy> = {
       areaNote: 'Balánbánya · Csíkszentdomokos · Csíkdánfalva · Csíkrákos · Nádasszék · Csíkszereda',
       hours: 'Járatok ideje',
       hoursNote: 'Hétfő–Vasárnap, első indulás 05:00',
+      company: 'C\u00e9gn\u00e9v',
+      email: 'E-mail',
+      cui: 'CUI',
+      address: 'C\u00edm',
     },
     footer: {
       company: 'Tomilk Prod S.R.L., menetrend szerinti személyszállítás Hargitában',
