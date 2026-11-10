@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { COPY, LINES, PHONES, AUTOGARI_URL } from '@/app/content';
+import { COPY, LINES, PHONES, AUTOGARI_URL, stopName, routeEnds, type Lang } from '@/app/content';
 import { Wordmark } from './Nav';
 
 type T = (typeof COPY)['ro'];
@@ -12,12 +12,14 @@ export function Hero({ t }: { t: T }) {
   return (
     <section id="top" className="hero">
       <div className="wrap hero-inner">
-        <p className="kicker">{t.hero.kicker}</p>
+        <p className="hero-services">
+          <span>{t.hero.serviceA}</span>
+          <span>{t.hero.serviceB}</span>
+        </p>
         <h1 className="hero-title">
           <span>{t.hero.h1a}</span>
           <span className="hero-title-2">{t.hero.h1b}</span>
         </h1>
-        <p className="hero-lead">{t.hero.lead}</p>
         <div className="hero-cta">
           <a className="btn btn-primary" href="/rezervare">
             {t.hero.privateCta}
@@ -41,9 +43,9 @@ export function Hero({ t }: { t: T }) {
 /* ------------------------------ STATS ------------------------------- */
 export function Stats({ t }: { t: T }) {
   const items = [
+    { n: '2', l: t.stats.lines },
     { n: '30+', l: t.stats.departures },
     { n: '16', l: t.stats.towns },
-    { n: '2', l: t.stats.lines },
   ];
   return (
     <section className="stats">
@@ -66,7 +68,7 @@ export function Stats({ t }: { t: T }) {
 }
 
 /* ------------------------------ ROUTES ------------------------------ */
-export function Routes({ t }: { t: T }) {
+export function Routes({ t, lang }: { t: T; lang: Lang }) {
   return (
     <section id="routes" className="block">
       <div className="wrap">
@@ -74,13 +76,14 @@ export function Routes({ t }: { t: T }) {
         <div className="routes">
           {LINES.map((line) => {
             const perDay = line.dirs.reduce((s, d) => s + d.times.length, 0);
+            const [a, b] = routeEnds(line.stops[0], line.stops[line.stops.length - 1]);
             return (
               <article className="route" key={line.code}>
                 <header className="route-head">
                   <span className="route-code data">{line.code}</span>
                   <h3 className="route-name">
-                    {line.stops[0]} <span className="route-arrow">⇄</span>{' '}
-                    {line.stops[line.stops.length - 1]}
+                    {stopName(a, lang)} <span className="route-arrow">⇄</span>{' '}
+                    {stopName(b, lang)}
                   </h3>
                   <span className="route-meta data">
                     {perDay} {t.routes.perDay}
@@ -94,7 +97,7 @@ export function Routes({ t }: { t: T }) {
                     return (
                       <span className={`route-stop${terminal ? ' is-term' : ''}`} role="listitem" key={s}>
                         <i />
-                        <b>{s}</b>
+                        <b>{stopName(s, lang)}</b>
                       </span>
                     );
                   })}
@@ -118,7 +121,7 @@ export function Routes({ t }: { t: T }) {
 }
 
 /* ---------------------------- TIMETABLE ----------------------------- */
-export function Timetable({ t }: { t: T }) {
+export function Timetable({ t, lang }: { t: T; lang: Lang }) {
   const [li, setLi] = useState(0);
   const [di, setDi] = useState(0);
   const line = LINES[li];
@@ -131,20 +134,23 @@ export function Timetable({ t }: { t: T }) {
 
         <div className="board-controls">
           <div className="seg" role="group" aria-label="Linie">
-            {LINES.map((l, i) => (
-              <button
-                key={l.code}
-                className={`seg-btn${i === li ? ' is-on' : ''}`}
-                aria-pressed={i === li}
-                onClick={() => {
-                  setLi(i);
-                  setDi(0);
-                }}
-              >
-                <span className="data">{l.code}</span>
-                {l.stops[0]}–{l.stops[l.stops.length - 1]}
-              </button>
-            ))}
+            {LINES.map((l, i) => {
+              const [a, b] = routeEnds(l.stops[0], l.stops[l.stops.length - 1]);
+              return (
+                <button
+                  key={l.code}
+                  className={`seg-btn${i === li ? ' is-on' : ''}`}
+                  aria-pressed={i === li}
+                  onClick={() => {
+                    setLi(i);
+                    setDi(0);
+                  }}
+                >
+                  <span className="data">{l.code}</span>
+                  {stopName(a, lang)}–{stopName(b, lang)}
+                </button>
+              );
+            })}
           </div>
 
           <div className="seg seg-dir" role="group" aria-label={t.schedule.direction}>
@@ -155,7 +161,7 @@ export function Timetable({ t }: { t: T }) {
                 aria-pressed={i === di}
                 onClick={() => setDi(i)}
               >
-                → {d.to}
+                → {stopName(d.to, lang)}
               </button>
             ))}
           </div>
@@ -164,7 +170,7 @@ export function Timetable({ t }: { t: T }) {
         <div className="board" key={`${li}-${di}`}>
           <div className="board-top">
             <span className="board-route data">
-              {dir.from} <span className="board-to">→ {dir.to}</span>
+              {stopName(dir.from, lang)} <span className="board-to">→ {stopName(dir.to, lang)}</span>
             </span>
             <span className="board-label data">
               {t.schedule.departuresLabel}
@@ -354,11 +360,11 @@ export function Footer({ t }: { t: T }) {
 }
 
 /* ----------------------------- shared ------------------------------- */
-function SectionHead({ title, lead }: { title: string; lead: string }) {
+function SectionHead({ title, lead }: { title: string; lead?: string }) {
   return (
     <header className="sec-head">
       <h2>{title}</h2>
-      <p>{lead}</p>
+      {lead ? <p>{lead}</p> : null}
     </header>
   );
 }

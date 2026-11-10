@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { COPY, PHONES, type Lang } from '@/app/content';
 
 const telHref = (p: string) => `tel:${p.replace(/[^+\d]/g, '')}`;
@@ -7,18 +8,7 @@ const telHref = (p: string) => `tel:${p.replace(/[^+\d]/g, '')}`;
 export function Wordmark() {
   return (
     <span className="wordmark" aria-label="Tomilk Prod">
-      <span className="wm-top">
-        TOMILK
-        <svg className="wm-swoosh" viewBox="0 0 120 14" aria-hidden>
-          <path
-            d="M2 11 C 34 1, 74 1, 118 9"
-            fill="none"
-            stroke="var(--signal)"
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-        </svg>
-      </span>
+      <span className="wm-top">TOMILK</span>
       <span className="wm-sub">PROD</span>
     </span>
   );
@@ -36,16 +26,20 @@ export default function Nav({
   return (
     <header className="nav">
       <div className="nav-inner wrap">
-        <a href="/#top" className="nav-brand" aria-label="Tomilk Prod">
+        <Link href="/#top" className="nav-brand" aria-label="Tomilk Prod">
           <Wordmark />
-        </a>
+        </Link>
 
         <nav className="nav-links" aria-label="Secțiuni">
-          <a href="/#routes">{t.nav.routes}</a>
-          <a href="/#schedule">{t.nav.schedule}</a>
-          <a href="/#fares">{t.nav.fares}</a>
-          <a href="/#contact">{t.nav.contact}</a>
-          <a href="/rezervare" className="nav-np">{t.nav.private}</a>
+          <Link href="/#routes">{t.nav.routes}</Link>
+          <Link href="/#schedule">{t.nav.schedule}</Link>
+          <Link href="/#fares">{t.nav.fares}</Link>
+          <Link href="/tarife">{t.nav.fareCalc}</Link>
+          <Link href="/#contact">{t.nav.contact}</Link>
+          <Link href="/oferta">{t.nav.quote}</Link>
+          <Link href="/rezervare" className="nav-np">
+            {t.nav.private}
+          </Link>
         </nav>
 
         <div className="nav-actions">

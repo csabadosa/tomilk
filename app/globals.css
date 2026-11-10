@@ -107,7 +107,7 @@ a {
   z-index: -3;
   --dawn: 0;
   background:
-    linear-gradient(180deg, #0f1730 0%, #1a2748 32%, #2b3a63 60%, #46507e 100%);
+    linear-gradient(180deg, #16223f 0%, #24345a 32%, #3a4a78 60%, #566196 100%);
   pointer-events: none;
 }
 .scene-sky::after {
@@ -235,7 +235,9 @@ a {
   height: calc(var(--road-h) - 36px);
   background: linear-gradient(180deg, #202430 0%, #15171c 55%, #0c0e12 100%);
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  overflow: hidden;
+  /* overflow visible so the Sprinter's roof isn't clipped by the road panel;
+     the lane streak clips itself via its own edge mask. */
+  overflow: visible;
 }
 .road-lane {
   position: absolute;
@@ -285,18 +287,6 @@ a {
   height: 14px;
   background: radial-gradient(60% 100% at 50% 50%, rgba(0, 0, 0, 0.55), transparent 72%);
   animation: busShadow 0.9s ease-in-out infinite;
-}
-.bus-headlight {
-  position: absolute;
-  z-index: 1;
-  right: -36%;
-  bottom: 26%;
-  width: 60%;
-  height: 58%;
-  background: linear-gradient(90deg, rgba(255, 221, 150, 0.6), rgba(255, 221, 150, 0));
-  clip-path: polygon(0 42%, 0 58%, 100% 100%, 100% 0);
-  filter: blur(2px);
-  opacity: calc(0.35 + var(--speed) * 0.5);
 }
 .bus-exhaust {
   position: absolute;
@@ -422,7 +412,6 @@ main {
   letter-spacing: 0.015em;
   color: var(--signal);
 }
-.wm-swoosh { position: absolute; left: 1px; right: 0; bottom: -5px; width: 100%; height: 9px; }
 .wm-sub {
   align-self: flex-end;
   margin-top: 5px;
@@ -485,11 +474,15 @@ main {
   padding-top: 66px;
   padding-bottom: 34vh;
 }
-.kicker {
-  font-size: 0.86rem;
-  color: var(--lane);
-  margin-bottom: 1.4rem;
-  font-weight: 500;
+.hero-services {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  max-width: 48ch;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--slate);
 }
 .hero-title {
   font-size: clamp(2.8rem, 8.5vw, 6.4rem);
@@ -796,6 +789,9 @@ main {
   padding: clamp(1.5rem, 4vw, 2.4rem);
   backdrop-filter: blur(8px);
 }
+.bk-trip { margin-bottom: 1.4rem; }
+.bk-trip .seg { width: 100%; max-width: 320px; }
+.bk-trip .seg-btn { flex: 1; justify-content: center; }
 .bk-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem 1.2rem; }
 .field { display: flex; flex-direction: column; gap: 0.5rem; }
 .field > span { font-size: 0.82rem; color: var(--slate); font-weight: 600; }
@@ -836,4 +832,225 @@ main {
 }
 @media (max-width: 560px) {
   .bk-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   KALKULÁTOROK — jegy/bérlet + különjárat árajánlat
+   (a meglévő tokeneket és a .bk-form/.field/.seg mintát használja)
+   ============================================================ */
+.calc-select {
+  width: 100%;
+  background: #0c0e12;
+  border: 1px solid var(--asphalt-3);
+  border-radius: 11px;
+  padding: 0.8rem 0.95rem;
+  color: var(--snow);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color-scheme: dark;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.calc-select:focus {
+  outline: none;
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgba(242, 116, 26, 0.18);
+}
+
+/* Honnan ⇄ Hová páros */
+.jk-pair {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.8rem;
+  align-items: end;
+  margin-top: 1.1rem;
+}
+.jk-pair .field {
+  margin: 0;
+}
+.jk-swap {
+  align-self: end;
+  width: 46px;
+  min-height: 46px;
+  border: 1px solid var(--asphalt-3);
+  border-radius: 11px;
+  background: #0c0e12;
+  color: var(--lane);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+.jk-swap:hover {
+  border-color: var(--signal);
+  color: var(--signal-bright);
+}
+
+/* Trip-típus felirat a seg fölé */
+.field-legend {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--slate);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* „Ha ismeri a pontos távolságot” lenyíló */
+.calc-advanced {
+  margin-top: 1.3rem;
+  border-top: 1px solid var(--asphalt-3);
+  padding-top: 1rem;
+  font-size: 0.92rem;
+}
+.calc-advanced summary {
+  cursor: pointer;
+  color: var(--lane);
+  font-weight: 600;
+  padding: 0.3rem 0;
+}
+
+/* Eredmény — buszjegy-szelvény (jegykalkulátor) */
+.calc-ticket {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin-top: 1.4rem;
+  min-height: 104px;
+  border: 1px solid var(--asphalt-3);
+  border-radius: 14px;
+  background: rgba(20, 23, 30, 0.6);
+  overflow: hidden;
+}
+.calc-ticket-info {
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.calc-ticket-route {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--snow);
+  overflow-wrap: anywhere;
+}
+.calc-ticket-type {
+  color: var(--slate);
+  font-size: 0.92rem;
+}
+.calc-badge {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  border: 1px solid var(--signal);
+  color: var(--signal-bright);
+  background: rgba(242, 116, 26, 0.08);
+}
+.calc-ticket-stub {
+  background: var(--lane);
+  color: var(--stub-ink, #2b2005);
+  padding: 1.1rem 1.4rem;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-left: 2px dashed rgba(43, 32, 5, 0.45);
+}
+.calc-ticket-price {
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.calc-ticket-cur {
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 0.3rem;
+  letter-spacing: 0.05em;
+}
+.calc-msg {
+  grid-column: 1 / -1;
+  padding: 1.1rem 1.4rem;
+  color: var(--signal-bright);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.calc-msg.is-neutral {
+  color: var(--slate);
+}
+
+/* Eredmény — árajánlat kártya (különjárat) */
+.calc-quote {
+  margin-top: 1.6rem;
+  border: 1px solid var(--asphalt-3);
+  border-radius: 14px;
+  background: rgba(20, 23, 30, 0.6);
+  overflow: hidden;
+}
+.calc-quote-head {
+  padding: 1.1rem 1.4rem;
+}
+.calc-quote-route {
+  font-weight: 700;
+  color: var(--snow);
+  overflow-wrap: anywhere;
+}
+.calc-quote-meta {
+  color: var(--slate);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+.calc-quote-stub {
+  background: var(--lane);
+  color: var(--stub-ink, #2b2005);
+  padding: 1.1rem 1.4rem;
+  text-align: center;
+  border-top: 2px dashed rgba(43, 32, 5, 0.45);
+}
+.calc-quote-range {
+  font-size: clamp(1.4rem, 5vw, 1.7rem);
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.calc-quote-vat {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-top: 0.2rem;
+}
+.calc-quote-rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.calc-quote-rows td {
+  padding: 0.55rem 1.4rem;
+  border-top: 1px solid var(--asphalt-3);
+  vertical-align: top;
+  color: var(--snow);
+}
+.calc-quote-rows td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.calc-quote-l {
+  color: var(--slate);
+}
+
+.calc-note {
+  margin-top: 1rem;
+  color: var(--slate-dim);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .jk-pair {
+    grid-template-columns: 1fr;
+  }
+  .jk-swap {
+    width: 100%;
+  }
 }

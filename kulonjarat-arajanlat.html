@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Különjárat – tájékoztató árajánlat</title>
+<style>
+  :root {
+    --ink:#17303a; --muted:#5b6f78; --paper:#fff; --bg:#eef3f4; --line:#c9d6da;
+    --accent:#0f5c6e; --stub:#f2b632; --stub-ink:#2b2005; --err:#9a3412; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink:#e6eef0; --muted:#9db0b7; --paper:#14232a; --bg:#0c171c; --line:#2c434d;
+      --accent:#5cc3d8; --err:#fdba74; color-scheme: dark;
+    }
+  }
+  :root { box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after { box-sizing:inherit; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+  .wrap { max-width:560px; margin:0 auto; padding:16px; }
+  .panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  h1 { margin:0 0 4px; font-size:1.3rem; }
+  .sub { margin:0 0 18px; color:var(--muted); font-size:.9rem; }
+  label { display:block; font-size:.85rem; font-weight:600; margin:0 0 6px; }
+  input, select { width:100%; font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-height:46px; }
+  input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+  .f { margin-bottom:14px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:420px) { .row { grid-template-columns:1fr; } }
+  .seg { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .seg label { display:flex; align-items:center; gap:8px; font-weight:500; border:1px solid var(--line); border-radius:8px; padding:11px 12px; margin:0; cursor:pointer; background:var(--bg); }
+  .seg input { width:auto; min-height:0; margin:0; }
+  details { margin-bottom:14px; font-size:.9rem; }
+  summary { cursor:pointer; color:var(--accent); font-weight:600; padding:6px 0; }
+  button.go { width:100%; min-height:50px; border:0; border-radius:10px; background:var(--accent); color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.go { color:#08262d; } }
+  button.go[disabled] { opacity:.6; cursor:wait; }
+  #err { color:var(--err); font-size:.9rem; margin:12px 0 0; min-height:1.2em; }
+  .ticket { display:none; margin-top:18px; border:1px solid var(--line); border-radius:10px; background:var(--bg); overflow:hidden; }
+  .ticket.on { display:block; }
+  .head { padding:14px 16px; }
+  .head .r { font-weight:700; overflow-wrap:anywhere; }
+  .head .m { color:var(--muted); font-size:.85rem; margin-top:2px; }
+  .stub { background:var(--stub); color:var(--stub-ink); padding:16px; text-align:center; border-top:2px dashed rgba(43,32,5,.45); }
+  .stub .p { font-size:1.7rem; font-weight:800; line-height:1.15; font-variant-numeric:tabular-nums; }
+  .stub .v { font-size:.85rem; font-weight:700; margin-top:2px; }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  td { padding:7px 16px; border-top:1px solid var(--line); vertical-align:top; }
+  td:last-child { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td.l { color:var(--muted); }
+  .note { margin:12px 2px 0; color:var(--muted); font-size:.78rem; line-height:1.45; }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="panel">
+  <h1>Különjárat – tájékoztató árajánlat</h1>
+  <p class="sub">Adja meg az útvonalat és az utazás adatait, a rendszer kiszámolja a távolságot és egy becsült árat.</p>
+
+  <div class="row">
+    <div class="f"><label for="from">Honnan (település)</label><input id="from" placeholder="pl. Csíkszereda" autocomplete="off"></div>
+    <div class="f"><label for="to">Hová (település)</label><input id="to" placeholder="pl. Budapest" autocomplete="off"></div>
+  </div>
+  <div class="f"><label for="d1">Indulás napja</label><input id="d1" type="date"></div>
+  <div class="f"><label for="pax">Személyek száma</label><input id="pax" type="number" min="1" max="500" inputmode="numeric" placeholder="pl. 45"></div>
+
+  <div class="f">
+    <label id="tl">Út típusa</label>
+    <div class="seg" role="radiogroup" aria-labelledby="tl">
+      <label><input type="radio" name="trip" value="oneway"> Csak oda</label>
+      <label><input type="radio" name="trip" value="round" checked> Oda-vissza</label>
+    </div>
+  </div>
+  <div class="f" id="ret"><label for="d2">Visszaút napja</label><input id="d2" type="date"></div>
+
+  <details>
+    <summary>Ha ismeri a pontos távolságot</summary>
+    <div class="row" style="margin-top:8px">
+      <div class="f"><label for="mkm">Egy út hossza (km)</label><input id="mkm" type="number" min="1" inputmode="numeric"></div>
+      <div class="f"><label for="mfk">ebből külföldön (km)</label><input id="mfk" type="number" min="0" inputmode="numeric" value="0"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label for="mka">Csíkszereda → indulás (km)</label><input id="mka" type="number" min="0" inputmode="numeric" value="0"></div>
+      <div class="f"><label for="mkb">Cél → Csíkszereda (km)</label><input id="mkb" type="number" min="0" inputmode="numeric" placeholder="üresen: = az út hossza"></div>
+    </div>
+  </details>
+
+  <button class="go" id="go" type="button">Árajánlat kérése</button>
+  <p id="err" role="alert"></p>
+
+  <div class="ticket" id="out" aria-live="polite">
+    <div class="head"><div class="r" id="o-route"></div><div class="m" id="o-meta"></div></div>
+    <div class="stub"><div class="p" id="o-range"></div><div class="v">+ ÁFA</div></div>
+    <table id="o-rows"></table>
+  </div>
+  <p class="note">Az ár tájékoztató jellegű, nem kötelező érvényű ajánlat. A végleges árat az útvonal, az időpont és a járműkapacitás függvényében egyeztetjük.</p>
+</div></div>
+
+<script>
+/* ===== SZERKESZTHETŐ BEÁLLÍTÁSOK ===== */
+const EUR_RON = 5.35;          // euró árfolyam (lej / euró)
+const BUS_MAX = 70;            // egy busz max. létszáma
+const DRIVER_DAY_RON = 250;    // sofőr napidíja a 2. naptól, lej / nap / busz
+const EMPTY_EUR_PER_KM = 0.8;  // üresjárat díja (Csíkszereda ↔ indulás/cél, hazautazás), €/km
+const EMPTY_MARGIN = 0.15;     // az üres hazautazást csak akkor veszi, ha legalább ennyivel olcsóbb a sofőr napidíjánál
+const RANGE_LOW = 0.93, RANGE_HIGH = 1.07; // az ársáv szélei
+const ROUND_TO = 50;           // az ársáv kerekítése (lej)
+const HOME_COUNTRY = "Románia";
+const TOLL_EUR_PER_KM = { "Magyarország":0.15, "Ausztria":0.30, "Németország":0.15, "default":0.12 }; // becsült útdíj busznak, €/km
+const rateFor = p => p <= 20 ? 1.0 : p <= 50 ? 1.3 : 1.5; // €/km a létszám szerint
+
+/* ===== SEGÉD ===== */
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString("hu-HU").replace(/\u00a0/g, " ");
+const tripType = () => document.querySelector('input[name="trip"]:checked').value;
+const setErr = m => { $("err").textContent = m || ""; };
+const tollOf = leg => leg.foreign.reduce((s, c) => s + c.km * (TOLL_EUR_PER_KM[c.name] ?? TOLL_EUR_PER_KM.default), 0);
+const legOf = x => ({ km: Math.max(+(x && x.km) || 0, 0), foreign: ((x && x.countries) || []).filter(c => c.name !== HOME_COUNTRY) });
+
+document.querySelectorAll('input[name="trip"]').forEach(r => r.addEventListener("change", () => {
+  $("ret").style.display = tripType() === "round" ? "" : "none";
+}));
+$("d1").addEventListener("change", () => {
+  const v = $("d1").value;
+  $("d2").min = v;
+  if (!$("d2").value || $("d2").value < v) $("d2").value = v;
+});
+
+async function getRoutes(from, to) {
+  const mk = parseFloat($("mkm").value);
+  if (mk > 0) {
+    const f = Math.min(Math.max(parseFloat($("mfk").value) || 0, 0), mk);
+    const a = Math.max(parseFloat($("mka").value) || 0, 0);
+    const b = $("mkb").value === "" ? mk : Math.max(parseFloat($("mkb").value) || 0, 0);
+    return { main: { km: mk, foreign: f ? [{ name: "külföld", km: f }] : [] }, a: { km: a, foreign: [] }, b: { km: b, foreign: [] }, from, to };
+  }
+  const sample = await claude.use("sample");
+  if (!sample) throw new Error("A távolság automatikus számítása itt nem érhető el. Kérjük, adja meg a km-t kézzel („Ha ismeri a pontos távolságot”).");
+  const prompt =
+    "Becsüld meg a közúti távolságot autóbusszal, a legkézenfekvőbb útvonalon, három szakaszra.\n" +
+    "Főszakasz: " + from + " → " + to + "\n" +
+    "base_to_from: Csíkszereda (Miercurea Ciuc, Románia) → " + from + "\n" +
+    "to_to_base: " + to + " → Csíkszereda (Miercurea Ciuc, Románia)\n" +
+    "Ha egy szakasz két végpontja ugyanaz a település, a km legyen 0.\n" +
+    "Válaszolj KIZÁRÓLAG JSON-nal, magyarázat nélkül, ebben a formában: " +
+    '{"recognized":true,"from":"település, ország","to":"település, ország",' +
+    '"main":{"km":0,"countries":[{"name":"Románia","km":0}]},' +
+    '"base_to_from":{"km":0,"countries":[]},"to_to_base":{"km":0,"countries":[]},"note":""}. ' +
+    "A km egy út hossza kerekítve. A countries az érintett országokat és az ott megtett km-t tartalmazza magyarul (összegük = km). " +
+    "Ha valamelyik település nem azonosítható, recognized legyen false és a note magyarázza meg.";
+  const r = await sample.json(prompt, { modelTier: "default" });
+  if (!r || !r.recognized || !(r.main && r.main.km > 0)) throw new Error((r && r.note) || "Nem sikerült azonosítani a településeket. Kérjük, ellenőrizze a neveket.");
+  return { main: legOf(r.main), a: legOf(r.base_to_from), b: legOf(r.to_to_base), from: r.from || from, to: r.to || to };
+}
+
+function compute(r, pax, round, days) {
+  const loadedKm = r.main.km * (round ? 2 : 1);
+  // üresjárat Csíkszeredával: oda-vissza útnál oda és vissza az indulásig, csak oda útnál az indulásig és a céltól haza
+  const emptyKm = round ? 2 * r.a.km : r.a.km + r.b.km;
+  const buses = [];
+  for (let i = 0; i < Math.floor(pax / BUS_MAX); i++) buses.push(BUS_MAX);
+  if (pax % BUS_MAX) buses.push(pax % BUS_MAX);
+  const n = buses.length;
+  let loadedEur = 0;
+  buses.forEach(p => loadedEur += rateFor(p) * loadedKm);
+  const emptyEur = emptyKm * EMPTY_EUR_PER_KM * n;
+  const tollEur = n * (tollOf(r.main) * (round ? 2 : 1) + (round ? 2 * tollOf(r.a) : tollOf(r.a) + tollOf(r.b)));
+  let driverRon = Math.max(0, days - 1) * DRIVER_DAY_RON * n;
+  let mode = "driver";
+  if (round && days >= 2) { // üres hazautazás (cél → Csíkszereda és vissza) vs. sofőr napidíj
+    const emptyRon = n * 2 * (r.b.km * EMPTY_EUR_PER_KM + tollOf(r.b)) * EUR_RON;
+    if (emptyRon < driverRon * (1 - EMPTY_MARGIN)) { driverRon = emptyRon; mode = "empty"; }
+  }
+  const total = (loadedEur + emptyEur + tollEur) * EUR_RON + driverRon;
+  return { loadedKm, emptyKm, buses, loadedEur, emptyEur, tollEur, driverRon, mode, total };
+}
+
+$("go").addEventListener("click", async () => {
+  setErr("");
+  const from = $("from").value.trim(), to = $("to").value.trim();
+  const pax = parseInt($("pax").value, 10), round = tripType() === "round";
+  const d1 = $("d1").value, d2 = round ? $("d2").value : d1;
+  if (!$("mkm").value && (!from || !to)) return setErr("Adja meg az indulási és a célállomás nevét.");
+  if (!d1) return setErr("Adja meg az indulás napját.");
+  if (!(pax >= 1)) return setErr("Adja meg a személyek számát.");
+  if (round && !d2) return setErr("Adja meg a visszaút napját.");
+  if (round && d2 < d1) return setErr("A visszaút nem lehet korábbi az indulásnál.");
+  const days = round ? Math.round((new Date(d2) - new Date(d1)) / 864e5) + 1 : 1;
+
+  const btn = $("go"); btn.disabled = true; btn.textContent = "Számolás…";
+  try {
+    const r = await getRoutes(from, to);
+    const c = compute(r, pax, round, days);
+    const lo = Math.floor(c.total * RANGE_LOW / ROUND_TO) * ROUND_TO, hi = Math.ceil(c.total * RANGE_HIGH / ROUND_TO) * ROUND_TO;
+    $("o-route").textContent = !from && !to ? "Megadott távolság" : r.from + " → " + r.to;
+    $("o-meta").textContent = pax + " fő · " + (round ? "oda-vissza" : "csak oda") + " · " + days + " nap · " + fmt(r.main.km) + " km / út";
+    $("o-range").textContent = fmt(lo) + " – " + fmt(hi) + " lej";
+    const rows = [["Távolság utassal", fmt(c.loadedKm) + " km"]];
+    if (c.emptyKm) rows.push(["Üresjárat Csíkszeredával", fmt(c.emptyKm) + " km"]);
+    rows.push(["Autóbuszok száma", c.buses.length + " db (" + c.buses.join(" + ") + " fő)"]);
+    rows.push(["Kilométerdíj (utassal)", fmt(c.loadedEur * EUR_RON) + " lej"]);
+    if (c.emptyEur) rows.push(["Üresjárat díja", fmt(c.emptyEur * EUR_RON) + " lej"]);
+    if (c.tollEur) rows.push(["Útdíj (külföld, becsült)", fmt(c.tollEur * EUR_RON) + " lej"]);
+    if (c.driverRon) rows.push([c.mode === "empty" ? "Üres hazautazás és visszajövetel" : "Sofőr napidíj (" + (days - 1) + " nap)", fmt(c.driverRon) + " lej"]);
+    rows.push(["Középérték", fmt(c.total) + " lej"]);
+    $("o-rows").innerHTML = rows.map(() => "<tr><td class='l'></td><td></td></tr>").join("");
+    [...$("o-rows").rows].forEach((tr, i) => { tr.cells[0].textContent = rows[i][0]; tr.cells[1].textContent = rows[i][1]; });
+    $("out").classList.add("on");
+  } catch (e) {
+    $("out").classList.remove("on");
+    setErr(e.message || "Hiba történt a számítás során. Próbálja újra.");
+  } finally { btn.disabled = false; btn.textContent = "Árajánlat kérése"; }
+});
+$("ret").style.display = "";
+</script>
+</body>
+</html>

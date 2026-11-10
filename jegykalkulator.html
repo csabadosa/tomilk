@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jegy- és bérletárak – Csíkszereda · Balánbánya · Lóvész</title>
+<style>
+  /* Minden stílus a .jk előtaggal van ellátva, így nem ütközik a weboldal saját CSS-ével. */
+  .jk {
+    --ink: #17303a; --muted: #5b6f78; --paper: #ffffff; --bg: #eef3f4;
+    --line: #c9d6da; --accent: #0f5c6e; --stub: #f2b632; --stub-ink: #2b2005;
+    --err: #9a3412;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink); max-width: 520px; margin: 0 auto; padding: 16px; box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    .jk { --ink: #e6eef0; --muted: #9db0b7; --paper: #14232a; --bg: #0c171c;
+          --line: #2c434d; --accent: #5cc3d8; --stub: #f2b632; --stub-ink: #2b2005; --err: #fdba74; }
+  }
+  .jk *, .jk *::before, .jk *::after { box-sizing: border-box; }
+  .jk-panel { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .jk h2 { margin: 0 0 4px; font-size: 1.25rem; line-height: 1.25; }
+  .jk-sub { margin: 0 0 18px; color: var(--muted); font-size: .9rem; }
+  .jk label { display: block; font-size: .85rem; font-weight: 600; margin: 0 0 6px; }
+  .jk select {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; min-height: 46px;
+  }
+  .jk select:focus-visible, .jk button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .jk-field { margin-bottom: 14px; }
+  .jk-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; margin-bottom: 14px; }
+  .jk-pair .jk-field { margin: 0; }
+  .jk-swap {
+    min-height: 46px; width: 46px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--accent); font-size: 1.2rem; cursor: pointer;
+  }
+  .jk-swap:hover { border-color: var(--accent); }
+  @media (max-width: 420px) {
+    .jk-pair { grid-template-columns: 1fr; }
+    .jk-swap { width: 100%; }
+  }
+
+  /* Eredmény: buszjegy-szelvény */
+  .jk-ticket {
+    display: grid; grid-template-columns: 1fr auto; margin-top: 20px; min-height: 104px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--bg); overflow: hidden; position: relative;
+  }
+  .jk-ticket-info { padding: 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 0; }
+  .jk-route { font-weight: 700; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .jk-type { color: var(--muted); font-size: .9rem; }
+  .jk-stub {
+    background: var(--stub); color: var(--stub-ink); padding: 16px 20px; min-width: 120px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    border-left: 2px dashed rgba(43,32,5,.45);
+  }
+  .jk-price { font-size: 2.1rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .jk-cur { font-size: .8rem; font-weight: 700; margin-top: 4px; }
+  .jk-msg { grid-column: 1 / -1; padding: 16px; color: var(--err); font-size: .95rem; }
+  .jk-msg.neutral { color: var(--muted); }
+  .jk-badge { display: none; align-self: flex-start; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: .75rem; border: 1px solid var(--accent); color: var(--accent); }
+  .jk-badge.on { display: inline-block; }
+  .jk-note { margin: 14px 2px 0; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="jk" id="jk">
+  <div class="jk-panel">
+    <h2>Jegy- és bérletárak</h2>
+    <p class="jk-sub">Válassza ki az útvonalat, a megállókat és a jegy típusát.</p>
+
+    <div class="jk-field">
+      <label for="jk-route">Járat</label>
+      <select id="jk-route"></select>
+    </div>
+
+    <div class="jk-pair">
+      <div class="jk-field">
+        <label for="jk-from">Honnan</label>
+        <select id="jk-from"></select>
+      </div>
+      <button type="button" class="jk-swap" id="jk-swap" aria-label="Kiindulási és célállomás felcserélése" title="Felcserélés">⇄</button>
+      <div class="jk-field">
+        <label for="jk-to">Hová</label>
+        <select id="jk-to"></select>
+      </div>
+    </div>
+
+    <div class="jk-field">
+      <label for="jk-type">Típus</label>
+      <select id="jk-type"></select>
+    </div>
+
+    <div class="jk-ticket" id="jk-out" aria-live="polite"></div>
+
+    <p class="jk-note">
+      Jegyárak érvényesek 2025. augusztus 1-től. Bérletárak érvényesek 2026. szeptember 7-től.
+      Havi bérlet más megállók között is kapható; ahol „számítva” szerepel, az ár a jegyár alapján becsült érték.
+      Az árak lejben (RON) értendők.
+    </p>
+  </div>
+</div>
+
+<script>
+/* ============ ADATOK – itt szerkeszthetők az árak ============ */
+
+// Járatok és megállók (sorrend = a járat útvonala)
+const ROUTES = {
+  balan: { name: "Csíkszereda – Balánbánya",
+    stops: ["Csíkszereda","Csíkcsicsó","Madéfalva","Csíkrákos","Csíkmadaras","Csíkdánfalva",
+            "Csíkkarcfalva","Csíkjenőfalva","Csíkszenttamás","Csíkszentdomokos","Balánbánya"] },
+  lovesz: { name: "Csíkszereda – Lóvész",
+    stops: ["Csíkszereda","Csíkcsicsó","Madéfalva","Csíkrákos","Göröcsfalva","Vacsárcsi",
+            "Csíkszentmihály","Ajnád","Lóvész"] }
+};
+
+// Jegyárak: minden sor a megállók sorrendjében, az átló (saját maga) null
+const TICKETS = {
+  balan: [
+    [null,8,8,9,10,11,11,12,12,15,17],
+    [8,null,6,7,8,9,10,10,11,12,15],
+    [8,6,null,6,7,8,9,9,10,12,15],
+    [9,7,6,null,6,7,8,9,9,11,13],
+    [10,8,7,6,null,6,7,8,8,10,12],
+    [11,9,8,7,6,null,5,7,7,9,12],
+    [11,10,9,8,7,5,null,4,7,9,11],
+    [12,10,9,9,8,7,4,null,6,8,11],
+    [12,11,10,9,8,7,7,6,null,7,10],
+    [15,12,12,11,10,9,9,8,7,null,8],
+    [17,15,15,13,12,12,11,11,10,8,null]
+  ],
+  lovesz: [
+    [null,8,8,9,9,10,10,11,12],
+    [8,null,6,7,7,8,8,9,10],
+    [8,6,null,6,6,7,7,8,9],
+    [9,7,6,null,4,5,6,7,8],
+    [9,7,6,4,null,4,5,6,7],
+    [10,8,7,5,4,null,4,5,7],
+    [10,8,7,6,5,4,null,4,6],
+    [11,9,8,7,6,5,4,null,5],
+    [12,10,9,8,7,7,6,5,null]
+  ]
+};
+
+// Bérletárak Csíkszeredából: [1 havi, 3 heti, 2 heti]
+const PASSES = {
+  "Csíkcsicsó":[271,210,150], "Madéfalva":[271,210,150], "Csíkrákos":[304,235,170],
+  "Göröcsfalva":[304,235,170], "Vacsárcsi":[337,260,185], "Csíkszentmihály":[337,260,185],
+  "Ajnád":[370,294,207], "Lóvész":[405,320,218],
+  "Csíkmadaras":[337,250,185], "Csíkdánfalva":[370,284,207], "Csíkkarcfalva":[370,284,207],
+  "Csíkjenőfalva":[405,320,218], "Csíkszenttamás":[405,320,218],
+  "Csíkszentdomokos":[470,370,260], "Balánbánya":[535,420,295]
+};
+
+const TYPES = [
+  { id: "jegy", label: "Jegy",          idx: null },
+  { id: "b1",   label: "1 havi bérlet", idx: 0 },
+  { id: "b3",   label: "3 heti bérlet", idx: 1 },
+  { id: "b2",   label: "2 heti bérlet", idx: 2 }
+];
+const HOME = "Csíkszereda";
+
+// Különleges bérletek (havi) – a „különleges bérletek” lista alapján. Ellenőrizendő az eredetivel!
+const SPECIAL = [
+  ["Csíkcsicsó","Csíkdánfalva",304], ["Csíkcsicsó","Csíkszenttamás",337],
+  ["Madéfalva","Csíkszentdomokos",337], ["Madéfalva","Csíkdánfalva",271],
+  ["Csíkrákos","Csíkszentdomokos",337], ["Csíkrákos","Csíkdánfalva",271], ["Csíkrákos","Csíkjenőfalva",271],
+  ["Csíkmadaras","Csíkcsicsó",304], ["Csíkkarcfalva","Csíkszenttamás",231], ["Csíkszenttamás","Csíkmadaras",231],
+  ["Csíkszentdomokos","Csíkkarcfalva",271], ["Csíkszentdomokos","Csíkdánfalva",264], ["Csíkszentdomokos","Csíkmadaras",304],
+  ["Balánbánya","Csíkcsicsó",370], ["Balánbánya","Csíkkarcfalva",304],
+  ["Balánbánya","Csíkdánfalva",337], ["Balánbánya","Csíkmadaras",337]
+];
+
+// Km-tábla: [jegyár (lej), havi bérlet (lej)] – más megállópárokra a havi bérletet a jegyárból számolja.
+// Ha a jegyár két érték közé esik, a következő (magasabb) sort használja.
+const KM_BANDS = [[6,231],[8,281],[9,304],[10,297],[11,337],[12,405],[15,470],[17,535]];
+
+/* ============ MŰKÖDÉS ============ */
+const $ = id => document.getElementById(id);
+const routeSel = $("jk-route"), fromSel = $("jk-from"), toSel = $("jk-to"),
+      typeSel = $("jk-type"), out = $("jk-out");
+
+function fill(sel, items, keepValue) {
+  const prev = keepValue ? sel.value : null;
+  sel.innerHTML = "";
+  items.forEach(([value, label]) => {
+    const o = document.createElement("option");
+    o.value = value; o.textContent = label; sel.appendChild(o);
+  });
+  if (prev && items.some(i => i[0] === prev)) sel.value = prev;
+}
+
+function loadStops() {
+  const stops = ROUTES[routeSel.value].stops;
+  const items = stops.map(s => [s, s]);
+  fill(fromSel, [["", "Válasszon megállót…"], ...items], true);
+  fill(toSel,   [["", "Válasszon megállót…"], ...items], true);
+  render();
+}
+
+function show(route, type, price, msg, neutral, badge) {
+  if (price != null) {
+    out.innerHTML =
+      '<div class="jk-ticket-info"><div class="jk-route"></div><div class="jk-type"></div><div class="jk-badge"></div></div>' +
+      '<div class="jk-stub"><div class="jk-price"></div><div class="jk-cur">RON</div></div>';
+    out.querySelector(".jk-route").textContent = route;
+    out.querySelector(".jk-type").textContent = type;
+    out.querySelector(".jk-price").textContent = price;
+    if (badge) { const b = out.querySelector(".jk-badge"); b.textContent = badge; b.classList.add("on"); }
+  } else {
+    out.innerHTML = '<div class="jk-msg' + (neutral ? " neutral" : "") + '"></div>';
+    out.firstChild.textContent = msg;
+  }
+}
+
+function render() {
+  const r = routeSel.value, from = fromSel.value, to = toSel.value;
+  const type = TYPES.find(t => t.id === typeSel.value);
+  if (!from || !to) return show(null, null, null, "Válassza ki a kiindulási és a célmegállót.", true);
+  if (from === to)  return show(null, null, null, "A két megálló megegyezik. Válasszon két különböző megállót.");
+
+  const label = from + " → " + to;
+  if (type.idx === null) {
+    const stops = ROUTES[r].stops;
+    const price = TICKETS[r][stops.indexOf(from)][stops.indexOf(to)];
+    return show(label, type.label, price);
+  }
+  // 1) Csíkszereda – hivatalos ár
+  const other = from === HOME ? to : (to === HOME ? from : null);
+  if (other && PASSES[other]) return show(label, type.label, PASSES[other][type.idx]);
+  // 2) és 3) más megállók között csak havi bérlet
+  if (type.id === "b1") {
+    const sp = SPECIAL.find(s => (s[0] === from && s[1] === to) || (s[0] === to && s[1] === from));
+    if (sp) return show(label, type.label, sp[2], null, false, "különleges bérlet");
+    const stops = ROUTES[r].stops;
+    const t = TICKETS[r][stops.indexOf(from)][stops.indexOf(to)];
+    const band = KM_BANDS.find(b => t <= b[0]);
+    if (band) return show(label, type.label, band[1], null, false, "km-tábla alapján számítva");
+  }
+  show(null, null, null, "Ehhez az útvonalhoz nincs bérletár megadva. A 3 és 2 heti bérlet csak Csíkszeredából induló vagy oda érkező viszonylatra van megadva.");
+}
+
+routeSel.innerHTML = Object.entries(ROUTES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+typeSel.innerHTML  = TYPES.map(t => `<option value="${t.id}">${t.label}</option>`).join("");
+routeSel.addEventListener("change", loadStops);
+[fromSel, toSel, typeSel].forEach(s => s.addEventListener("change", render));
+$("jk-swap").addEventListener("click", () => { const f = fromSel.value; fromSel.value = toSel.value; toSel.value = f; render(); });
+loadStops();
+</script>
+</body>
+</html>

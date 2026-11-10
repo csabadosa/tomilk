@@ -17,8 +17,8 @@ export default function HomeClient({ initialLang }: { initialLang: Lang }) {
       <main>
         <Hero t={t} />
         <Stats t={t} />
-        <Routes t={t} />
-        <Timetable t={t} />
+        <Routes t={t} lang={lang} />
+        <Timetable t={t} lang={lang} />
         <Fares t={t} />
         <Why t={t} />
         <PrivatePromo t={t} />

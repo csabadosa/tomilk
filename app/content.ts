@@ -74,6 +74,36 @@ export const LINES = [
   },
 ] as const;
 
+/* Hungarian names for every stop, keyed by the Romanian name stored in LINES.
+   ⚠ A couple are best-guess (marked below) — have the client confirm. */
+export const STOP_HU: Record<string, string> = {
+  'Bălan': 'Balánbánya',
+  'Sândominic': 'Csíkszentdomokos',
+  'Tomești': 'Csíkszenttamás',
+  'Ineu': 'Csíkjenőfalva',
+  'Cârța': 'Csíkkarcfalva',
+  'Dănești': 'Csíkdánfalva',
+  'Mădăraș': 'Csíkmadaras',
+  'Racu': 'Csíkrákos',
+  'Siculeni': 'Madéfalva',
+  'Ciceu': 'Csicsó',
+  'Toplița Ciuc': 'Csíktaploca',
+  'Miercurea Ciuc': 'Csíkszereda',
+  'Satu Nou': 'Újfalu', // ⚠ verify
+  'Văcărești': 'Csíkvacsárcsi', // ⚠ verify
+  'Mihăileni': 'Csíkszentmihály',
+  'Nădejdea': 'Ajnád',
+};
+
+/* Localised stop name: RO stays as stored, HU comes from the map (falls back to RO). */
+export const stopName = (ro: string, lang: Lang) =>
+  lang === 'hu' ? STOP_HU[ro] ?? ro : ro;
+
+/* The Csíkszereda / Miercurea Ciuc hub always leads a route's end-to-end label. */
+const HUB = 'Miercurea Ciuc';
+export const routeEnds = (a: string, b: string): [string, string] =>
+  b === HUB ? [b, a] : [a, b];
+
 /* Stops that mark progress on the foreground route-rail (west → east spine). */
 export const RAIL_STOPS = [
   'Bălan',
@@ -85,12 +115,21 @@ export const RAIL_STOPS = [
 ] as const;
 
 type Copy = {
-  nav: { routes: string; schedule: string; fares: string; contact: string; call: string; private: string };
+  nav: {
+    routes: string;
+    schedule: string;
+    fares: string;
+    contact: string;
+    call: string;
+    private: string;
+    fareCalc: string;
+    quote: string;
+  };
   hero: {
-    kicker: string;
+    serviceA: string;
+    serviceB: string;
     h1a: string;
     h1b: string;
-    lead: string;
     seeSchedule: string;
     callNow: string;
     privateCta: string;
@@ -130,7 +169,10 @@ type Copy = {
     name: string;
     phone: string;
     notes: string;
+    tripType: string;
+    oneWay: string;
     roundTrip: string;
+    returnDate: string;
     peoplePh: string;
     fromPh: string;
     toPh: string;
@@ -147,16 +189,88 @@ type Copy = {
   contact: { title: string; lead: string; callLabel: string; area: string; areaNote: string; hours: string; hoursNote: string };
   footer: { company: string; built: string; source: string };
   railLabel: string;
+  /* Jegy- és bérletár-kalkulátor. */
+  jegyCalc: {
+    title: string;
+    lead: string;
+    route: string;
+    from: string;
+    to: string;
+    type: string;
+    swap: string; // aria-label
+    swapTitle: string;
+    selectStop: string;
+    currency: string; // RON
+    types: { jegy: string; b1: string; b3: string; b2: string };
+    badge: { special: string; kmTable: string };
+    err: { missingStops: string; sameStop: string; unknownStop: string; noPassData: string };
+    note: string;
+  };
+  /* Különjárat árajánlat-kalkulátor. */
+  kulonCalc: {
+    title: string;
+    lead: string;
+    from: string;
+    fromPh: string;
+    to: string;
+    toPh: string;
+    departDate: string;
+    pax: string;
+    paxPh: string;
+    tripType: string;
+    oneWay: string;
+    round: string;
+    returnDate: string;
+    advanced: string;
+    mkm: string;
+    mfk: string;
+    mka: string;
+    mkb: string;
+    mkbPh: string;
+    submit: string;
+    submitBusy: string;
+    givenDistance: string; // eredmény cím, ha kézi távolság
+    vat: string; // + ÁFA
+    currency: string; // lej
+    paxUnit: string; // fő
+    dayUnit: string; // nap
+    perTrip: string; // km / út
+    busUnit: string; // db
+    rows: {
+      loadedKm: string;
+      emptyKm: string;
+      buses: string;
+      loadedFee: string;
+      emptyFee: string;
+      toll: string;
+      driver: string; // {days} helyőrzővel
+      emptyHome: string;
+      midpoint: string;
+    };
+    err: { route: string; date: string; pax: string; ret: string; retBefore: string; generic: string };
+    note: string;
+  };
+  /* Kalkulátor-oldalak közös vissza-linkje. */
+  calcBack: string;
 };
 
 export const COPY: Record<Lang, Copy> = {
   ro: {
-    nav: { routes: 'Linii', schedule: 'Orar', fares: 'Prețuri', contact: 'Contact', call: 'Sună', private: 'Transport privat' },
+    nav: {
+      routes: 'Linii',
+      schedule: 'Orar',
+      fares: 'Prețuri',
+      contact: 'Contact',
+      call: 'Sună',
+      private: 'Transport privat',
+      fareCalc: 'Calculator preț',
+      quote: 'Ofertă',
+    },
     hero: {
-      kicker: 'Transport regulat prin bazinul Ciucului',
-      h1a: 'Drumul spre casă,',
-      h1b: 'în fiecare zi.',
-      lead: 'Curse zilnice care leagă satele din Ciuc de Miercurea Ciuc. Urcă în Sprinter — de condus ne ocupăm noi.',
+      serviceA: 'Curse regulate între satele din Ciucul de Sus și Miercurea Ciuc',
+      serviceB: 'Curse private la cerere, în toată Europa',
+      h1a: 'Tomilk Prod —',
+      h1b: 'alegerea sigură, pentru orice călătorie.',
       seeSchedule: 'Vezi orarul',
       callNow: 'Sună acum',
       privateCta: 'Cerere transport privat',
@@ -164,8 +278,8 @@ export const COPY: Record<Lang, Copy> = {
     },
     stats: { departures: 'curse zilnice', towns: 'localități pe traseu', lines: 'linii regulate', from: 'bilet de la', fromUnit: 'RON' },
     routes: {
-      title: 'Liniile noastre',
-      lead: 'Două trasee regulate, dus-întors, în tot bazinul Ciucului.',
+      title: 'Cursele noastre regulate',
+      lead: '',
       stopsLabel: 'stații',
       viewTimes: 'Vezi plecările',
       perDay: 'plecări/zi',
@@ -218,7 +332,10 @@ export const COPY: Record<Lang, Copy> = {
       name: 'Nume',
       phone: 'Telefon',
       notes: 'Observații',
+      tripType: 'Tip cursă',
+      oneWay: 'Doar dus',
       roundTrip: 'Dus-întors',
+      returnDate: 'Data de retur',
       peoplePh: 'ex. 8',
       fromPh: 'ex. Miercurea Ciuc',
       toPh: 'ex. Bălan',
@@ -247,14 +364,101 @@ export const COPY: Record<Lang, Copy> = {
       source: 'Orar oficial',
     },
     railLabel: 'Traseul tău',
+    jegyCalc: {
+      title: 'Prețuri bilete și abonamente',
+      lead: 'Alege linia, stațiile și tipul biletului.',
+      route: 'Linie',
+      from: 'De unde',
+      to: 'Până unde',
+      type: 'Tip',
+      swap: 'Inversează stația de plecare și de sosire',
+      swapTitle: 'Inversează',
+      selectStop: 'Alege o stație…',
+      currency: 'RON',
+      types: {
+        jegy: 'Bilet',
+        b1: 'Abonament 1 lună',
+        b3: 'Abonament 3 săptămâni',
+        b2: 'Abonament 2 săptămâni',
+      },
+      badge: { special: 'abonament special', kmTable: 'calculat pe baza tabelului km' },
+      err: {
+        missingStops: 'Alege stația de plecare și de sosire.',
+        sameStop: 'Cele două stații coincid. Alege două stații diferite.',
+        unknownStop: 'Stația aleasă nu se află pe această linie.',
+        noPassData:
+          'Pentru acest traseu nu există preț de abonament. Abonamentele de 3 și 2 săptămâni sunt disponibile doar pe relații cu Miercurea Ciuc.',
+      },
+      note: 'Prețurile biletelor sunt valabile de la 1 august 2025. Prețurile abonamentelor sunt valabile de la 7 septembrie 2026. Prețurile sunt în lei (RON).',
+    },
+    kulonCalc: {
+      title: 'Transport privat – ofertă orientativă',
+      lead: 'Dă-ne traseul și detaliile călătoriei, iar sistemul calculează distanța și un preț estimativ.',
+      from: 'De unde (localitate)',
+      fromPh: 'ex. Miercurea Ciuc',
+      to: 'Până unde (localitate)',
+      toPh: 'ex. Budapesta',
+      departDate: 'Data plecării',
+      pax: 'Număr de persoane',
+      paxPh: 'ex. 45',
+      tripType: 'Tip cursă',
+      oneWay: 'Doar dus',
+      round: 'Dus-întors',
+      returnDate: 'Data de retur',
+      advanced: 'Dacă știi distanța exactă',
+      mkm: 'Lungimea unei curse (km)',
+      mfk: 'din care în străinătate (km)',
+      mka: 'Miercurea Ciuc → plecare (km)',
+      mkb: 'Destinație → Miercurea Ciuc (km)',
+      mkbPh: 'gol: = lungimea cursei',
+      submit: 'Cere ofertă',
+      submitBusy: 'Se calculează…',
+      givenDistance: 'Distanță introdusă',
+      vat: '+ TVA',
+      currency: 'lei',
+      paxUnit: 'pers.',
+      dayUnit: 'zile',
+      perTrip: 'km / cursă',
+      busUnit: 'buc.',
+      rows: {
+        loadedKm: 'Distanță cu pasageri',
+        emptyKm: 'Curse goale cu Miercurea Ciuc',
+        buses: 'Număr de autocare',
+        loadedFee: 'Tarif pe kilometru (cu pasageri)',
+        emptyFee: 'Cost curse goale',
+        toll: 'Taxă drum (străinătate, estimat)',
+        driver: 'Diurnă șofer ({days} zile)',
+        emptyHome: 'Întoarcere goală și revenire',
+        midpoint: 'Valoare medie',
+      },
+      err: {
+        route: 'Introdu localitatea de plecare și de sosire.',
+        date: 'Introdu data plecării.',
+        pax: 'Introdu numărul de persoane.',
+        ret: 'Introdu data de retur.',
+        retBefore: 'Returul nu poate fi înainte de plecare.',
+        generic: 'A apărut o eroare la calcul. Încearcă din nou.',
+      },
+      note: 'Prețul este orientativ, nu reprezintă o ofertă fermă.',
+    },
+    calcBack: '← Înapoi la pagina principală',
   },
   hu: {
-    nav: { routes: 'Járatok', schedule: 'Menetrend', fares: 'Árak', contact: 'Kapcsolat', call: 'Hívás', private: 'Különjárat' },
+    nav: {
+      routes: 'Járatok',
+      schedule: 'Menetrend',
+      fares: 'Árak',
+      contact: 'Kapcsolat',
+      call: 'Hívás',
+      private: 'Különjárat',
+      fareCalc: 'Árkalkulátor',
+      quote: 'Árajánlat',
+    },
     hero: {
-      kicker: 'Menetrend szerinti személyszállítás a Csíki-medencében',
-      h1a: 'Az út hazafelé,',
-      h1b: 'minden nap.',
-      lead: 'Napi járatok, amelyek a csíki falvakat Csíkszeredával kötik össze. Szálljon fel a Sprinterre — a vezetést bízza ránk.',
+      serviceA: 'Menetrend szerinti járatok a felcsíki falvak és Csíkszereda között',
+      serviceB: 'Különjáratok igény szerint Európa-szerte',
+      h1a: 'Tomilk Prod —',
+      h1b: 'a biztos választás, minden utazásra.',
       seeSchedule: 'Menetrend',
       callNow: 'Hívjon most',
       privateCta: 'Különjárat igénylése',
@@ -262,8 +466,8 @@ export const COPY: Record<Lang, Copy> = {
     },
     stats: { departures: 'napi járat', towns: 'település az útvonalon', lines: 'rendszeres járat', from: 'jegy már', fromUnit: 'lej-től' },
     routes: {
-      title: 'Járataink',
-      lead: 'Két rendszeres útvonal, oda-vissza, a Csíki-medencében.',
+      title: 'Menetrend szerinti járataink',
+      lead: '',
       stopsLabel: 'megálló',
       viewTimes: 'Indulások',
       perDay: 'indulás/nap',
@@ -316,7 +520,10 @@ export const COPY: Record<Lang, Copy> = {
       name: 'Név',
       phone: 'Telefon',
       notes: 'Megjegyzés',
+      tripType: 'Út típusa',
+      oneWay: 'Csak oda',
       roundTrip: 'Oda-vissza',
+      returnDate: 'Visszaút dátuma',
       peoplePh: 'pl. 8',
       fromPh: 'pl. Csíkszereda',
       toPh: 'pl. Balánbánya',
@@ -345,5 +552,83 @@ export const COPY: Record<Lang, Copy> = {
       source: 'Hivatalos menetrend',
     },
     railLabel: 'Az Ön útvonala',
+    jegyCalc: {
+      title: 'Jegy- és bérletárak',
+      lead: 'Válassza ki az útvonalat, a megállókat és a jegy típusát.',
+      route: 'Járat',
+      from: 'Honnan',
+      to: 'Hová',
+      type: 'Típus',
+      swap: 'Kiindulási és célállomás felcserélése',
+      swapTitle: 'Felcserélés',
+      selectStop: 'Válasszon megállót…',
+      currency: 'RON',
+      types: {
+        jegy: 'Jegy',
+        b1: '1 havi bérlet',
+        b3: '3 heti bérlet',
+        b2: '2 heti bérlet',
+      },
+      badge: { special: 'különleges bérlet', kmTable: 'km-tábla alapján számítva' },
+      err: {
+        missingStops: 'Válassza ki a kiindulási és a célmegállót.',
+        sameStop: 'A két megálló megegyezik. Válasszon két különböző megállót.',
+        unknownStop: 'A választott megálló nem szerepel ezen a járaton.',
+        noPassData:
+          'Ehhez az útvonalhoz nincs bérletár megadva. A 3 és 2 heti bérlet csak Csíkszeredából induló vagy oda érkező viszonylatra van megadva.',
+      },
+      note: 'Jegyárak érvényesek 2025. augusztus 1-től. Bérletárak érvényesek 2026. szeptember 7-től. Az árak lejben (RON) értendők.',
+    },
+    kulonCalc: {
+      title: 'Különjárat – tájékoztató árajánlat',
+      lead: 'Adja meg az útvonalat és az utazás adatait, a rendszer kiszámolja a távolságot és egy becsült árat.',
+      from: 'Honnan (település)',
+      fromPh: 'pl. Csíkszereda',
+      to: 'Hová (település)',
+      toPh: 'pl. Budapest',
+      departDate: 'Indulás napja',
+      pax: 'Személyek száma',
+      paxPh: 'pl. 45',
+      tripType: 'Út típusa',
+      oneWay: 'Csak oda',
+      round: 'Oda-vissza',
+      returnDate: 'Visszaút napja',
+      advanced: 'Ha ismeri a pontos távolságot',
+      mkm: 'Egy út hossza (km)',
+      mfk: 'ebből külföldön (km)',
+      mka: 'Csíkszereda → indulás (km)',
+      mkb: 'Cél → Csíkszereda (km)',
+      mkbPh: 'üresen: = az út hossza',
+      submit: 'Árajánlat kérése',
+      submitBusy: 'Számolás…',
+      givenDistance: 'Megadott távolság',
+      vat: '+ ÁFA',
+      currency: 'lej',
+      paxUnit: 'fő',
+      dayUnit: 'nap',
+      perTrip: 'km / út',
+      busUnit: 'db',
+      rows: {
+        loadedKm: 'Távolság utassal',
+        emptyKm: 'Üresjárat Csíkszeredával',
+        buses: 'Autóbuszok száma',
+        loadedFee: 'Kilométerdíj (utassal)',
+        emptyFee: 'Üresjárat díja',
+        toll: 'Útdíj (külföld, becsült)',
+        driver: 'Sofőr napidíj ({days} nap)',
+        emptyHome: 'Üres hazautazás és visszajövetel',
+        midpoint: 'Középérték',
+      },
+      err: {
+        route: 'Adja meg az indulási és a célállomás nevét.',
+        date: 'Adja meg az indulás napját.',
+        pax: 'Adja meg a személyek számát.',
+        ret: 'Adja meg a visszaút napját.',
+        retBefore: 'A visszaút nem lehet korábbi az indulásnál.',
+        generic: 'Hiba történt a számítás során. Próbálja újra.',
+      },
+      note: 'Az ár tájékoztató jellegű, nem kötelező érvényű ajánlat.',
+    },
+    calcBack: '← Vissza a főoldalra',
   },
 };

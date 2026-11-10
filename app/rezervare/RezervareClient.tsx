@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { COPY, WHATSAPP, type Lang } from '../content';
 import { useLang } from '../useLang';
@@ -17,6 +18,7 @@ type Form = {
   phone: string;
   notes: string;
   roundTrip: boolean;
+  returnDate: string;
 };
 
 const EMPTY: Form = {
@@ -29,6 +31,7 @@ const EMPTY: Form = {
   phone: '',
   notes: '',
   roundTrip: false,
+  returnDate: '',
 };
 
 export default function RezervareClient({ initialLang }: { initialLang: Lang }) {
@@ -42,7 +45,14 @@ export default function RezervareClient({ initialLang }: { initialLang: Lang }) 
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!f.people.trim() || !f.from.trim() || !f.to.trim() || !f.name.trim() || !f.phone.trim()) {
+    if (
+      !f.people.trim() ||
+      !f.from.trim() ||
+      !f.to.trim() ||
+      !f.name.trim() ||
+      !f.phone.trim() ||
+      (f.roundTrip && !f.returnDate)
+    ) {
       setErr(true);
       return;
     }
@@ -55,8 +65,9 @@ export default function RezervareClient({ initialLang }: { initialLang: Lang }) 
       `${b.people}: ${f.people}`,
       `${b.from}: ${f.from}`,
       `${b.to}: ${f.to}`,
+      `${b.tripType}: ${f.roundTrip ? b.roundTrip : b.oneWay}`,
       when ? `${b.date}: ${when}` : '',
-      `${b.roundTrip}: ${f.roundTrip ? b.yes : b.no}`,
+      f.roundTrip && f.returnDate ? `${b.returnDate}: ${f.returnDate}` : '',
       `${b.name}: ${f.name}`,
       `${b.phone}: ${f.phone}`,
       f.notes.trim() ? `${b.notes}: ${f.notes}` : '',
@@ -74,21 +85,46 @@ export default function RezervareClient({ initialLang }: { initialLang: Lang }) 
       <main>
         <section className="block booking-sec">
           <div className="wrap booking-wrap">
-            <a className="booking-back" href="/#top">
+            <Link className="booking-back" href="/#top">
               {b.back}
-            </a>
+            </Link>
             <header className="sec-head">
               <h2>{b.title}</h2>
               <p>{b.lead}</p>
             </header>
 
             <form className="bk-form" onSubmit={submit} noValidate>
+              <div className="bk-trip">
+                <div className="seg" role="group" aria-label={b.tripType}>
+                  <button
+                    type="button"
+                    className={`seg-btn${!f.roundTrip ? ' is-on' : ''}`}
+                    aria-pressed={!f.roundTrip}
+                    onClick={() => {
+                      set('roundTrip', false);
+                      set('returnDate', '');
+                    }}
+                  >
+                    {b.oneWay}
+                  </button>
+                  <button
+                    type="button"
+                    className={`seg-btn${f.roundTrip ? ' is-on' : ''}`}
+                    aria-pressed={f.roundTrip}
+                    onClick={() => set('roundTrip', true)}
+                  >
+                    {b.roundTrip}
+                  </button>
+                </div>
+              </div>
+
               <div className="bk-grid">
                 <label className="field field-full">
                   <span>{b.people} *</span>
                   <input
                     type="number"
                     min={1}
+                    max={60}
                     inputMode="numeric"
                     placeholder={b.peoplePh}
                     value={f.people}
@@ -120,6 +156,18 @@ export default function RezervareClient({ initialLang }: { initialLang: Lang }) 
                   <span>{b.date}</span>
                   <input type="date" value={f.date} onChange={(e) => set('date', e.target.value)} />
                 </label>
+                {f.roundTrip && (
+                  <label className="field">
+                    <span>{b.returnDate} *</span>
+                    <input
+                      type="date"
+                      value={f.returnDate}
+                      min={f.date || undefined}
+                      onChange={(e) => set('returnDate', e.target.value)}
+                      required
+                    />
+                  </label>
+                )}
                 <label className="field">
                   <span>{b.time}</span>
                   <input type="time" value={f.time} onChange={(e) => set('time', e.target.value)} />
@@ -156,15 +204,6 @@ export default function RezervareClient({ initialLang }: { initialLang: Lang }) 
                   />
                 </label>
               </div>
-
-              <label className="bk-check">
-                <input
-                  type="checkbox"
-                  checked={f.roundTrip}
-                  onChange={(e) => set('roundTrip', e.target.checked)}
-                />
-                <span>{b.roundTrip}</span>
-              </label>
 
               {err && (
                 <p className="bk-err" role="alert">

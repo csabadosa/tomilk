@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { RAIL_STOPS, COPY, type Lang } from '@/app/content';
+import { RAIL_STOPS, COPY, stopName, type Lang } from '@/app/content';
 
 /* The signature interaction: a persistent dawn mountain road.
    Sky + parallax ridgelines sit fixed behind the scrolling page;
@@ -40,17 +40,17 @@ export default function DrivingScene({ lang }: { lang: Lang }) {
       const dy = Math.abs(y - lastY);
       lastY = y;
       speed = lerp(speed, Math.min(1, dy / 42), 0.18);
-      const drive = 0.14 + speed * 0.86; // baseline idle crawl + scroll boost
+      const drive = 0.1 + speed * 0.5; // gentler idle crawl + softer scroll boost
 
       // --- foreground road: streaking dashed lane + progress fill ---
-      laneOffset = (laneOffset - (3 + drive * 34)) % 64;
+      laneOffset = (laneOffset - (2 + drive * 18)) % 64;
       if (laneRef.current) laneRef.current.style.backgroundPositionX = `${laneOffset}px`;
       if (fillRef.current) fillRef.current.style.width = `${p * 100}%`;
 
       // --- the bus: crosses the screen, bobs, leans into curves ---
       if (busRef.current) {
         const xPct = lerp(9, 63, p);
-        const bob = reduce ? 0 : Math.sin(y / 46) * (1.4 + speed * 3.2);
+        const bob = reduce ? 0 : Math.sin(y / 46) * (1 + speed * 1.8);
         const lean = reduce ? 0 : Math.sin(p * Math.PI * 6) * 1.6 + (y - lastY) * 0;
         busRef.current.style.setProperty('--x', `${xPct}vw`);
         busRef.current.style.setProperty('--bob', `${bob}px`);
@@ -121,7 +121,6 @@ export default function DrivingScene({ lang }: { lang: Lang }) {
             <span className="bus-exhaust" />
             <span className="bus-exhaust bus-exhaust-2" />
             <img src="/assets/mercedes_sprinter.png" alt="" draggable={false} />
-            <span className="bus-headlight" />
             <span className="bus-shadow" />
           </div>
         </div>
@@ -130,7 +129,7 @@ export default function DrivingScene({ lang }: { lang: Lang }) {
       {/* live caption for the rail (not purely decorative) */}
       <p className="road-caption data" aria-live="polite">
         <span>{t.railLabel}</span>
-        <strong>{RAIL_STOPS[active]}</strong>
+        <strong>{stopName(RAIL_STOPS[active], lang)}</strong>
       </p>
     </>
   );
