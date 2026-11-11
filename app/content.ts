@@ -363,7 +363,7 @@ export const COPY: Record<Lang, Copy> = {
       address: 'Adres\u0103',
     },
     footer: {
-      company: 'Tomilk Prod S.R.L., transport regulat de persoane în Harghita',
+      company: 'S.C. Tomilk Prod S.R.L., transport regulat de persoane și curse speciale la cerere',
       built: 'Pagină de prezentare',
       source: 'Orar oficial',
     },
@@ -555,7 +555,7 @@ export const COPY: Record<Lang, Copy> = {
       address: 'C\u00edm',
     },
     footer: {
-      company: 'Tomilk Prod S.R.L., menetrend szerinti személyszállítás Hargitában',
+      company: 'S.C. Tomilk Prod S.R.L., menetrend szerinti személyszállítás és igény szerinti különjáratok',
       built: 'Bemutatkozó oldal',
       source: 'Hivatalos menetrend',
     },

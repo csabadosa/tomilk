@@ -35,6 +35,7 @@ export default function Nav({
           <Link href="/#schedule">{t.nav.schedule}</Link>
           <Link href="/tarife">{lang === 'hu' ? 'Áraink' : 'Prețuri'}</Link>
           <Link href="/flotta">{lang === 'hu' ? 'Flotta' : 'Flotă'}</Link>
+          <Link href="/rolunk">{lang === 'hu' ? 'Rólunk' : 'Despre noi'}</Link>
           <Link href="/#contact">{t.nav.contact}</Link>
           <Link href="/oferta" className="nav-np">{lang === 'hu' ? 'Különjárat / ajánlatkérés' : 'Transport privat / ofertă'}</Link>
         </nav>
